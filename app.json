@@ -24,6 +24,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "77014ef0-d56a-4f2f-84da-f88742958aaf"
+      }
+    },
+    "owner": "wellingtonpereiravc"
   }
 }
