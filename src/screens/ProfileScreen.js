@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { RideContext } from '../context/RideContext';
 import { theme } from '../styles/theme';
@@ -18,8 +19,10 @@ const ProfileScreen = () => {
         Alert.alert("Aviso", "Funcionalidade de limpar histórico não implementada no backend ainda.");
     };
 
+    const insets = useSafeAreaInsets();
+
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
             <View style={styles.header}>
                 <View style={styles.avatarContainer}>
                     <User size={64} color={theme.colors.text} />
@@ -38,7 +41,7 @@ const ProfileScreen = () => {
                     </View>
                 </TouchableOpacity>
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 

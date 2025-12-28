@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RideContext } from '../context/RideContext';
 import { theme } from '../styles/theme';
 import { Calendar, Clock, MapPin } from 'lucide-react-native';
@@ -55,8 +56,10 @@ const HistoryScreen = () => {
         );
     };
 
+    const insets = useSafeAreaInsets();
+
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
             <View style={styles.header}>
                 <Text style={styles.title}>Histórico de Pedais</Text>
             </View>
@@ -84,7 +87,7 @@ const HistoryScreen = () => {
                     }}
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 };
 

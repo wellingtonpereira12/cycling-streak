@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RideContext } from '../context/RideContext';
 import AchievementCard from '../components/AchievementCard';
 import { theme } from '../styles/theme';
@@ -16,8 +17,10 @@ const AchievementsScreen = () => {
         { threshold: 100, title: 'Lenda do Pedal', description: '100 dias. Você é imparável.' },
     ];
 
+    const insets = useSafeAreaInsets();
+
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
             <View style={styles.header}>
                 <Text style={styles.title}>Conquistas</Text>
                 <Text style={styles.subtitle}>Sua jornada até aqui</Text>
@@ -32,7 +35,7 @@ const AchievementsScreen = () => {
                     />
                 ))}
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 

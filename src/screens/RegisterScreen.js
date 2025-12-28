@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../styles/theme';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const RegisterScreen = ({ navigation }) => {
     const { register } = useAuth();
@@ -49,9 +49,14 @@ const RegisterScreen = ({ navigation }) => {
         }
     };
 
+    const insets = useSafeAreaInsets();
+
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
             <View style={styles.content}>
+                <View style={styles.logoContainer}>
+                    <Image source={require('../../assets/logo.png')} style={styles.logo} />
+                </View>
                 <Text style={styles.title}>Crie sua conta</Text>
                 <Text style={styles.subtitle}>Comece sua jornada de pedaladas hoje.</Text>
 
@@ -107,7 +112,7 @@ const RegisterScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -120,6 +125,15 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: theme.spacing.m,
         justifyContent: 'center',
+    },
+    logoContainer: {
+        alignItems: 'center',
+        marginBottom: theme.spacing.xl,
+    },
+    logo: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
     },
     title: {
         ...theme.typography.h1,

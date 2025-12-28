@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, RefreshControl, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, Alert, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RideContext } from '../context/RideContext';
 import { useAuth } from '../context/AuthContext';
 import StreakCounter from '../components/StreakCounter';
@@ -26,8 +27,10 @@ const HomeScreen = () => {
     // We can disable button if already ridden today to prevent spam?
     // User req: "Botão para registrar pedal (manual)". doesn't say disable.
 
+    const insets = useSafeAreaInsets();
+
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
             <ScrollView
                 contentContainerStyle={styles.content}
                 refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} colors={[theme.colors.primary]} tintColor={theme.colors.primary} />}
@@ -73,7 +76,7 @@ const HomeScreen = () => {
                     </View>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 };
 
