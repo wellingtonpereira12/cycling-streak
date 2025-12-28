@@ -22,7 +22,7 @@ const ProfileScreen = () => {
     const insets = useSafeAreaInsets();
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <View style={styles.header}>
                 <View style={styles.avatarContainer}>
                     <User size={64} color={theme.colors.text} />

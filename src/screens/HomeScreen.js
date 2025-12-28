@@ -30,7 +30,7 @@ const HomeScreen = () => {
     const insets = useSafeAreaInsets();
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <ScrollView
                 contentContainerStyle={styles.content}
                 refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} colors={[theme.colors.primary]} tintColor={theme.colors.primary} />}

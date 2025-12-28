@@ -15,10 +15,11 @@ import ProfileScreen from '../screens/ProfileScreen';
 import { theme } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
 
-const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MainTabNavigator = () => {
+    const insets = useSafeAreaInsets();
+
     return (
         <Tab.Navigator
             screenOptions={{
@@ -26,8 +27,8 @@ const MainTabNavigator = () => {
                 tabBarStyle: {
                     backgroundColor: theme.colors.surface,
                     borderTopColor: 'transparent',
-                    height: 60,
-                    paddingBottom: 8,
+                    height: 60 + insets.bottom,
+                    paddingBottom: insets.bottom + 8,
                     paddingTop: 8,
                 },
                 tabBarActiveTintColor: theme.colors.primary,

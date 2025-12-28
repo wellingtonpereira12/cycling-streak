@@ -20,7 +20,7 @@ const AchievementsScreen = () => {
     const insets = useSafeAreaInsets();
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <View style={styles.header}>
                 <Text style={styles.title}>Conquistas</Text>
                 <Text style={styles.subtitle}>Sua jornada até aqui</Text>
