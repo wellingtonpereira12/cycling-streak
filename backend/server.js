@@ -9,6 +9,9 @@ app.use(cors()); // Allow all for now, or configure specific origin
 app.use(express.json());
 
 // Routes
+app.get('/', (req, res) => {
+    res.send('Cycling Streak API Running');
+});
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/rides', require('./routes/rideRoutes'));
 
