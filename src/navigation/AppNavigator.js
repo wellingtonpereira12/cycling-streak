@@ -17,6 +17,9 @@ import { useAuth } from '../context/AuthContext';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
 const MainTabNavigator = () => {
     const insets = useSafeAreaInsets();
 
