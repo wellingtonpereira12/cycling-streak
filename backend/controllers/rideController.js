@@ -33,7 +33,7 @@ exports.addRide = async (req, res) => {
             [usuario_id, rideDateStr, distancia_km, duracao_min]
         );
 
-        // 3. Read ofensivas.ultimo_pedal
+        // 3. Read ofensivas stats
         const resOfensiva = await client.query('SELECT * FROM ofensivas WHERE usuario_id = $1', [usuario_id]);
         let { ofensiva_atual, ofensiva_recorde, ultimo_pedal } = resOfensiva.rows[0];
 
@@ -61,8 +61,6 @@ exports.addRide = async (req, res) => {
                     // Lost streak, restart
                     newStreak = 1;
                 }
-                // If diffDays === 0 (same day), should be caught by UNIQUE constraint, but just in case:
-                // newStreak remains same
             } else {
                 // First ride ever
                 newStreak = 1;
@@ -75,7 +73,10 @@ exports.addRide = async (req, res) => {
 
             // 4. Update ofensivas (only if new ride)
             await client.query(
-                'UPDATE ofensivas SET ofensiva_atual = $1, ofensiva_recorde = $2, ultimo_pedal = $3, atualizado_em = NOW() WHERE usuario_id = $4',
+                `UPDATE ofensivas 
+                 SET ofensiva_atual = $1, ofensiva_recorde = $2, ultimo_pedal = $3, 
+                     atualizado_em = NOW() 
+                 WHERE usuario_id = $4`,
                 [newStreak, newRecord, rideDateStr, usuario_id]
             );
         }
@@ -114,7 +115,28 @@ exports.getHistory = async (req, res) => {
 exports.getDashboard = async (req, res) => {
     const usuario_id = req.user.id;
     try {
-        const ofensivaRes = await db.query('SELECT * FROM ofensivas WHERE usuario_id = $1', [usuario_id]);
+        // Dynamic query: Sum only the last N rides where N = ofensiva_atual
+        const query = `
+            WITH user_ofensiva AS (
+                SELECT * FROM ofensivas WHERE usuario_id = $1
+            ),
+            totals AS (
+                SELECT 
+                    COALESCE(SUM(distancia_km), 0) as km_total,
+                    COALESCE(SUM(duracao_min), 0) as tempo_total
+                FROM (
+                    SELECT distancia_km, duracao_min
+                    FROM pedais
+                    WHERE usuario_id = $1
+                    ORDER BY data_pedal DESC
+                    LIMIT (SELECT ofensiva_atual FROM user_ofensiva)
+                ) as last_rides
+            )
+            SELECT u.*, t.km_total, t.tempo_total
+            FROM user_ofensiva u, totals t
+        `;
+
+        const ofensivaRes = await db.query(query, [usuario_id]);
         const pedaisRes = await db.query('SELECT * FROM pedais WHERE usuario_id = $1 ORDER BY data_pedal DESC LIMIT 7', [usuario_id]);
 
         res.json({

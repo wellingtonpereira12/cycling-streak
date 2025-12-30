@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS ofensivas (
     usuario_id UUID NOT NULL UNIQUE,
     ofensiva_atual INTEGER NOT NULL DEFAULT 0,
     ofensiva_recorde INTEGER NOT NULL DEFAULT 0,
+    ofensiva_km_total NUMERIC(10,2) DEFAULT 0,
+    ofensiva_tempo_total INTEGER DEFAULT 0,
     ultimo_pedal DATE,
     atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
 

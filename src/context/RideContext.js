@@ -12,7 +12,9 @@ export const RideProvider = ({ children }) => {
         record: 0,
         riskLevel: 'safe',
         daysMissed: 0,
-        lastRideDate: null
+        lastRideDate: null,
+        totalDistance: 0,
+        totalDuration: 0
     });
     const [loading, setLoading] = useState(false);
 
@@ -57,6 +59,8 @@ export const RideProvider = ({ children }) => {
                 streak: currentStreak,
                 record: streak ? streak.ofensiva_recorde : 0,
                 lastRideDate: streak ? streak.ultimo_pedal : null,
+                totalDistance: streak ? Number(streak.km_total || 0) : 0,
+                totalDuration: streak ? Number(streak.tempo_total || 0) : 0,
                 riskLevel,
                 daysMissed
             });
