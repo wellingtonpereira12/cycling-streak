@@ -4,7 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // NOTE: For Android Emulator, use 'http://10.0.2.2:3000/api'
 // For iOS Emulator/Simulator, use 'http://localhost:3000/api'
 // For Physical Device, use your computer's IP address e.g. 'http://192.168.1.XX:3000/api'
-//const BASE_URL = 'http://10.0.2.2:3000/api'; // Android Emulator (BlueStacks)
+// Use current machine IP for universal access (Emulator & Physical Device)
+//const BASE_URL = 'http://192.168.3.114:3000/api';
 // Production URL (Render)
 const BASE_URL = 'https://cycling-streak.onrender.com/api';
 

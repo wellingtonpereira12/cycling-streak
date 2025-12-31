@@ -51,11 +51,15 @@ export const RideProvider = ({ children }) => {
         });
 
         const totalDist = todaysRides.reduce((acc, ride) => acc + Number(ride.distancia_km || 0), 0);
-        const totalDur = todaysRides.reduce((acc, ride) => acc + Number(ride.duracao_min || 0), 0);
+        // Map duracao_seg if available, fallback to duracao_min * 60
+        const totalDur = todaysRides.reduce((acc, ride) => {
+            const seg = ride.duracao_seg ? Number(ride.duracao_seg) : (Number(ride.duracao_min || 0) * 60);
+            return acc + seg;
+        }, 0);
 
         setTodayStats({
             distance: totalDist,
-            duration: totalDur
+            duration: totalDur // Duration is now in SECONDS
         });
     }, [rides]);
 
@@ -101,7 +105,7 @@ export const RideProvider = ({ children }) => {
                 record: streak ? streak.ofensiva_recorde : 0,
                 lastRideDate: streak ? streak.ultimo_pedal : null,
                 totalDistance: streak ? Number(streak.km_total || 0) : 0,
-                totalDuration: streak ? Number(streak.tempo_total || 0) : 0,
+                totalDuration: streak ? Number(streak.tempo_total || 0) : 0, // tempo_total from dash is now in SECONDS
                 riskLevel,
                 daysMissed
             });
@@ -175,11 +179,11 @@ export const RideProvider = ({ children }) => {
 
             if (save) {
                 // Calculate total to save (Daily accumulated total)
-                // sessionResult.duration is in seconds, todayStats.duration is in minutes
                 const totalDist = (todayStats.distance || 0) + result.distance;
-                const totalDur = (todayStats.duration || 0) + Math.round(result.duration / 60);
+                const sessionDur = (typeof result.durationSec === 'number' && !isNaN(result.durationSec)) ? result.durationSec : 0;
+                const totalDur = (todayStats.duration || 0) + Math.round(sessionDur);
 
-                // Save combined total to backend
+                // Save combined total to backend using seconds
                 await addRide(totalDist, totalDur);
             }
 
@@ -209,10 +213,9 @@ export const RideProvider = ({ children }) => {
 
     const addRide = async (distancia, duracao) => {
         try {
-            // Default dummy values if not provided, for the "One Click" button
             const payload = {
-                distancia_km: distancia || 10,
-                duracao_min: duracao || 30,
+                distancia_km: (typeof distancia === 'number' && !isNaN(distancia)) ? distancia : 0,
+                duracao_seg: (typeof duracao === 'number' && !isNaN(duracao)) ? Math.round(duracao) : 0,
                 data_pedal: new Date().toISOString()
             };
 

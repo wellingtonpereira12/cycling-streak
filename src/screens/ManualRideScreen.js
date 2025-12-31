@@ -72,7 +72,8 @@ const ManualRideScreen = ({ navigation }) => {
             };
 
             // Start API call with the FULL daily total (not delta)
-            addRide(inputDistance, inputDuration).catch(e => {
+            // RideContext.addRide now expects SECONDS
+            addRide(inputDistance, inputDuration * 60).catch(e => {
                 console.error("Manual ride sync error:", e);
                 Alert.alert("Erro", "Não foi possível sincronizar o pedal manual.");
             });

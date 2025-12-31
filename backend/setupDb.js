@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS pedais (
     usuario_id UUID NOT NULL,
     data_pedal DATE NOT NULL,
     distancia_km NUMERIC(6,2),
-    duracao_min INTEGER,
+    duracao_min INTEGER, -- Legacy
+    duracao_seg INTEGER,
     criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_pedais_usuario
@@ -35,7 +36,8 @@ CREATE TABLE IF NOT EXISTS ofensivas (
     ofensiva_atual INTEGER NOT NULL DEFAULT 0,
     ofensiva_recorde INTEGER NOT NULL DEFAULT 0,
     ofensiva_km_total NUMERIC(10,2) DEFAULT 0,
-    ofensiva_tempo_total INTEGER DEFAULT 0,
+    ofensiva_tempo_total INTEGER DEFAULT 0, -- Legacy
+    ofensiva_tempo_total_seg INTEGER DEFAULT 0,
     ultimo_pedal DATE,
     atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
 

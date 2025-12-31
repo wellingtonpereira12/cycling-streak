@@ -103,12 +103,21 @@ const HistoryScreen = () => {
                             <Text style={dynamicStyles.detailText}>{item.distancia_km} km</Text>
                         </View>
                     )}
-                    {item.duracao_min && (
+                    {item.duracao_seg ? (
+                        <View style={dynamicStyles.detail}>
+                            <Clock size={16} color={theme.colors.textSecondary} />
+                            <Text style={dynamicStyles.detailText}>
+                                {Math.floor(item.duracao_seg / 3600).toString().padStart(2, '0')}:
+                                {Math.floor((item.duracao_seg % 3600) / 60).toString().padStart(2, '0')}:
+                                {Math.floor(item.duracao_seg % 60).toString().padStart(2, '0')}
+                            </Text>
+                        </View>
+                    ) : item.duracao_min ? (
                         <View style={dynamicStyles.detail}>
                             <Clock size={16} color={theme.colors.textSecondary} />
                             <Text style={dynamicStyles.detailText}>{item.duracao_min} min</Text>
                         </View>
-                    )}
+                    ) : null}
                 </View>
             </View>
         );

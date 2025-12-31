@@ -163,8 +163,12 @@ const ShareCard = ({ streak, totalDistance, totalDuration, userName }) => {
                     </View>
                     <View style={dynamicStyles.statItem}>
                         <Clock size={40} color="rgba(255, 255, 255, 0.6)" />
-                        <Text style={dynamicStyles.statValue}>{Math.round(totalDuration || 0)} MIN</Text>
-                        <Text style={dynamicStyles.statLabelSmall}>EM MOVIMENTO</Text>
+                        <Text style={dynamicStyles.statValue}>
+                            {Math.floor(totalDuration / 3600).toString().padStart(2, '0')}:
+                            {Math.floor((totalDuration % 3600) / 60).toString().padStart(2, '0')}:
+                            {Math.floor(totalDuration % 60).toString().padStart(2, '0')}
+                        </Text>
+                        <Text style={dynamicStyles.statLabelSmall}>TEMPO TOTAL</Text>
                     </View>
                 </View>
             </View>

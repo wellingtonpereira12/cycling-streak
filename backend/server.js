@@ -31,7 +31,8 @@ app.get('/setup-db', async (req, res) => {
             usuario_id UUID NOT NULL,
             data_pedal DATE NOT NULL,
             distancia_km NUMERIC(6,2),
-            duracao_min INTEGER,
+            duracao_min INTEGER, -- Legacy
+            duracao_seg INTEGER,
             criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
             CONSTRAINT fk_pedais_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
             CONSTRAINT uq_usuario_data UNIQUE (usuario_id, data_pedal)
@@ -41,6 +42,8 @@ app.get('/setup-db', async (req, res) => {
             usuario_id UUID NOT NULL UNIQUE,
             ofensiva_atual INTEGER NOT NULL DEFAULT 0,
             ofensiva_recorde INTEGER NOT NULL DEFAULT 0,
+            ofensiva_km_total NUMERIC(10,2) DEFAULT 0,
+            ofensiva_tempo_total_seg INTEGER DEFAULT 0,
             ultimo_pedal DATE,
             atualizado_em TIMESTAMP NOT NULL DEFAULT NOW(),
             CONSTRAINT fk_ofensiva_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
@@ -61,5 +64,6 @@ app.use('/api/rides', require('./routes/rideRoutes'));
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server v2 (Seconds Precision) running on port ${PORT}`);
+    console.log(`Current time: ${new Date().toISOString()}`);
 });

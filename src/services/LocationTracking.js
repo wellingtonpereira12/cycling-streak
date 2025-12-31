@@ -112,13 +112,16 @@ export const setOnPauseChange = (callback) => {
 };
 
 export const startTracking = async (callback) => {
-    // 1. Reset Data
+    // 1. Reset all state data (including pause state)
     currentRideData = {
         distance: 0,
         startTime: Date.now(),
         locations: []
     };
     lastMovementTime = Date.now();
+    isPaused = false;
+    pausedTime = 0;
+    pauseStartTime = null;
     updateCallback = callback;
 
     // Start Timer Interval (every 1s)
@@ -172,12 +175,18 @@ export const stopTracking = async () => {
 
     // Capture final state
     const endTime = Date.now();
-    const durationMin = Math.round((endTime - currentRideData.startTime) / 1000 / 60);
+    let totalPausedTime = pausedTime;
+    if (isPaused && pauseStartTime) {
+        totalPausedTime += (endTime - pauseStartTime);
+    }
+    const finalDurationSec = ((endTime - currentRideData.startTime) - totalPausedTime) / 1000;
+    const durationMin = Math.ceil(finalDurationSec / 60);
     const distanceKm = parseFloat(currentRideData.distance.toFixed(2));
 
     const result = {
         distance: distanceKm,
         duration: durationMin,
+        durationSec: finalDurationSec, // Include raw seconds for more precision if needed
         locations: currentRideData.locations
     };
 
@@ -195,9 +204,15 @@ export const isTracking = async () => {
 
 export const getCurrentStats = () => {
     if (!currentRideData.startTime) return { distance: 0, duration: 0 };
+
+    let totalPausedTime = pausedTime;
+    if (isPaused && pauseStartTime) {
+        totalPausedTime += (Date.now() - pauseStartTime);
+    }
+
     return {
         distance: currentRideData.distance,
-        duration: (Date.now() - currentRideData.startTime) / 1000
+        duration: ((Date.now() - currentRideData.startTime) - totalPausedTime) / 1000
     };
 };
 

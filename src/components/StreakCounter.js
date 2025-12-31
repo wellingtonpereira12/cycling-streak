@@ -9,8 +9,8 @@ const StreakCounter = ({ streak, riskLevel }) => {
     const getFlameColor = () => {
         if (streak === 0) return theme.colors.disabled;
         if (riskLevel === 'danger') return theme.colors.error;
-        if (riskLevel === 'warning') return '#FF9800'; // Warning Orange
-        return theme.colors.primary; // Standard Fire
+        if (riskLevel === 'warning') return theme.colors.fire || '#FF9800';
+        return theme.colors.primary;
     };
 
     const dynamicStyles = StyleSheet.create({

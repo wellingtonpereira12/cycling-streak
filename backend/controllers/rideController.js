@@ -1,7 +1,10 @@
 const db = require('../config/db');
 
 exports.addRide = async (req, res) => {
-    const { distancia_km, duracao_min, data_pedal } = req.body;
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Incoming addRide payload:`, JSON.stringify(req.body));
+    const { distancia_km, duracao_min: old_min, duracao_seg, data_pedal } = req.body;
+    // ...
     const usuario_id = req.user.id;
     // data_pedal expected validation or default to today? user said "Insere novo registro em pedais"
     // We assume data_pedal is passed or we use current date.
@@ -11,6 +14,9 @@ exports.addRide = async (req, res) => {
     const rideDate = data_pedal ? new Date(data_pedal) : new Date();
     // Normalize to YYYY-MM-DD for consistency
     const rideDateStr = rideDate.toISOString().split('T')[0];
+
+    // Harden numeric fields
+    const dist_km = (typeof distancia_km === 'number' && !isNaN(distancia_km)) ? distancia_km : 0;
 
     const client = await db.pool.connect();
 
@@ -24,17 +30,33 @@ exports.addRide = async (req, res) => {
         );
         const isUpdate = existingRide.rows.length > 0;
 
-        // 2. Insert or Update pedais (UPSERT)
+        // Support both old and new field names, and handle NaN/null
+        const dur_seg = (typeof duracao_seg === 'number' && !isNaN(duracao_seg))
+            ? Math.round(duracao_seg)
+            : (typeof old_min === 'number' && !isNaN(old_min)) ? (old_min * 60) : 60;
+
+        const dur_min = Math.ceil(dur_seg / 60);
+
         await client.query(
-            `INSERT INTO pedais (usuario_id, data_pedal, distancia_km, duracao_min) 
-             VALUES ($1, $2, $3, $4)
+            `INSERT INTO pedais (usuario_id, data_pedal, distancia_km, duracao_seg, duracao_min) 
+             VALUES ($1, $2, $3, $4, $5)
              ON CONFLICT (usuario_id, data_pedal) 
-             DO UPDATE SET distancia_km = $3, duracao_min = $4`,
-            [usuario_id, rideDateStr, distancia_km, duracao_min]
+             DO UPDATE SET distancia_km = $3, duracao_seg = $4, duracao_min = $5`,
+            [usuario_id, rideDateStr, dist_km, dur_seg, dur_min]
         );
 
         // 3. Read ofensivas stats
-        const resOfensiva = await client.query('SELECT * FROM ofensivas WHERE usuario_id = $1', [usuario_id]);
+        let resOfensiva = await client.query('SELECT * FROM ofensivas WHERE usuario_id = $1', [usuario_id]);
+
+        if (resOfensiva.rows.length === 0) {
+            console.log(`Ofensiva record missing for user ${usuario_id}. Creating...`);
+            await client.query(
+                'INSERT INTO ofensivas (usuario_id, ofensiva_atual, ofensiva_recorde) VALUES ($1, 0, 0)',
+                [usuario_id]
+            );
+            resOfensiva = await client.query('SELECT * FROM ofensivas WHERE usuario_id = $1', [usuario_id]);
+        }
+
         let { ofensiva_atual, ofensiva_recorde, ultimo_pedal } = resOfensiva.rows[0];
 
         let newStreak = ofensiva_atual;
@@ -90,11 +112,12 @@ exports.addRide = async (req, res) => {
         });
 
     } catch (err) {
-        await client.query('ROLLBACK');
-        console.error(err);
-        res.status(500).send('Server error');
+        if (client) await client.query('ROLLBACK');
+        console.error("Error in addRide:", err);
+        console.error("Request Body:", req.body);
+        res.status(500).json({ msg: 'Server error', error: err.message });
     } finally {
-        client.release();
+        if (client) client.release();
     }
 };
 
@@ -123,9 +146,9 @@ exports.getDashboard = async (req, res) => {
             totals AS (
                 SELECT 
                     COALESCE(SUM(distancia_km), 0) as km_total,
-                    COALESCE(SUM(duracao_min), 0) as tempo_total
+                    COALESCE(SUM(duracao_seg), 0) as tempo_total -- Returning seconds now
                 FROM (
-                    SELECT distancia_km, duracao_min
+                    SELECT distancia_km, duracao_seg
                     FROM pedais
                     WHERE usuario_id = $1
                     ORDER BY data_pedal DESC
@@ -138,6 +161,14 @@ exports.getDashboard = async (req, res) => {
 
         const ofensivaRes = await db.query(query, [usuario_id]);
         const pedaisRes = await db.query('SELECT * FROM pedais WHERE usuario_id = $1 ORDER BY data_pedal DESC LIMIT 7', [usuario_id]);
+
+        if (ofensivaRes.rows.length === 0) {
+            // If still missing (highly unlikely after addRide), return defaults
+            return res.json({
+                streak: { ofensiva_atual: 0, ofensiva_recorde: 0, km_total: 0, tempo_total: 0 },
+                recentRides: pedaisRes.rows
+            });
+        }
 
         res.json({
             streak: ofensivaRes.rows[0],

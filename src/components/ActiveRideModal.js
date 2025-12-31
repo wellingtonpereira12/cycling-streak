@@ -125,8 +125,8 @@ const ActiveRideModal = () => {
             return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         };
 
-        // Calculate total seconds: daily total (min -> sec) + live session (sec)
-        const totalSeconds = (todayStats?.duration || 0) * 60 + liveStats.duration;
+        // duration is already in seconds in todayStats
+        const totalSeconds = (todayStats?.duration || 0) + liveStats.duration;
         setDurationString(formatTime(totalSeconds));
     }, [liveStats.duration, todayStats]);
 
@@ -173,8 +173,8 @@ const ActiveRideModal = () => {
     };
 
     const onConfirmStop = async () => {
-        // If distance is zero, we just cleanup. If not, we save.
-        if (liveStats.distance === 0) {
+        // Allow saving if either distance > 0 OR duration > 0 (for testing/stationary)
+        if (liveStats.distance === 0 && liveStats.duration === 0) {
             await stopLiveRide(false); // False = do not save
             cleanupLiveRide();
             setIsConfirmingStop(false);
@@ -186,7 +186,7 @@ const ActiveRideModal = () => {
                 // Capture FINAL daily totals for the summary
                 const finalDailyStats = {
                     distance: (todayStats?.distance || 0) + liveStats.distance,
-                    duration: (todayStats?.duration || 0) * 60 + liveStats.duration
+                    duration: (todayStats?.duration || 0) + liveStats.duration
                 };
 
                 // Stop tracking and save to API

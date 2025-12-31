@@ -2,12 +2,19 @@ const db = require('./config/db');
 
 const debug = async () => {
     try {
-        const res = await db.query(`
+        const pedaisCols = await db.query(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'pedais'
+        `);
+        console.log("Columns in 'pedais':", pedaisCols.rows.map(r => r.column_name));
+
+        const ofensivasCols = await db.query(`
             SELECT column_name 
             FROM information_schema.columns 
             WHERE table_name = 'ofensivas'
         `);
-        console.log("Columns in 'ofensivas':", res.rows.map(r => r.column_name));
+        console.log("Columns in 'ofensivas':", ofensivasCols.rows.map(r => r.column_name));
         process.exit(0);
     } catch (err) {
         console.error("Debug failed:", err);
