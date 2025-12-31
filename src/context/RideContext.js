@@ -4,6 +4,8 @@ import { useAuth } from './AuthContext';
 
 export const RideContext = createContext();
 
+import * as LocationTracker from '../services/LocationTracking';
+
 export const RideProvider = ({ children }) => {
     const { userToken } = useAuth();
     const [rides, setRides] = useState([]);
@@ -17,6 +19,11 @@ export const RideProvider = ({ children }) => {
         totalDuration: 0
     });
     const [loading, setLoading] = useState(false);
+
+    // Live Ride State
+    const [isRecording, setIsRecording] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [liveStats, setLiveStats] = useState({ distance: 0, duration: 0, path: [] });
 
     const fetchDashboard = useCallback(async () => {
         if (!userToken) return;
@@ -80,6 +87,54 @@ export const RideProvider = ({ children }) => {
         }
     }, [userToken, fetchDashboard]);
 
+    // Check if tracking is already running (e.g. after reload or app restart)
+    useEffect(() => {
+        const checkTracking = async () => {
+            const tracking = await LocationTracker.isTracking();
+            if (tracking) {
+                console.log("Found lingering recording on startup. Cancelling as requested...");
+                // User requested to CANCEL if app was closed
+                await LocationTracker.stopTracking();
+                setIsRecording(false);
+                setLiveStats({ distance: 0, duration: 0, path: [] });
+            }
+        };
+        checkTracking();
+    }, []);
+
+    const startLiveRide = async () => {
+        try {
+            await LocationTracker.startTracking((stats) => {
+                setLiveStats(stats);
+            });
+            setIsRecording(true);
+            setIsModalVisible(true);
+            return true;
+        } catch (error) {
+            console.error("Error starting ride:", error);
+            throw error;
+        }
+    };
+
+    const stopLiveRide = async (save = true) => {
+        try {
+            setIsRecording(false);
+            const result = await LocationTracker.stopTracking();
+
+            if (save) {
+                // Save to backend
+                await addRide(result.distance, result.duration);
+            }
+
+            setLiveStats({ distance: 0, duration: 0, path: [] });
+            setIsModalVisible(false);
+            return result;
+        } catch (error) {
+            console.error("Error stopping ride:", error);
+            throw error;
+        }
+    };
+
     const addRide = async (distancia, duracao) => {
         try {
             // Default dummy values if not provided, for the "One Click" button
@@ -123,7 +178,13 @@ export const RideProvider = ({ children }) => {
             addRide,
             loadHistory,
             refresh: fetchDashboard,
-            loading
+            loading,
+            isRecording,
+            isModalVisible,
+            setIsModalVisible,
+            liveStats,
+            startLiveRide,
+            stopLiveRide
         }}>
             {children}
         </RideContext.Provider>

@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
 
@@ -63,7 +64,8 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
 
         // Force reload on web to clear all state
-        if (typeof window !== 'undefined') {
+        // Force reload on web to clear all state
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
             setTimeout(() => {
                 window.location.reload();
             }, 100);

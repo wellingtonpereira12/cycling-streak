@@ -21,7 +21,14 @@
         "backgroundColor": "#1c252c"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.wellingtonpereiravc.cyclingstreak"
+      "package": "com.wellingtonpereiravc.cyclingstreak",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

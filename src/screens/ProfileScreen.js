@@ -8,9 +8,18 @@ import { User, LogOut, Trash2 } from 'lucide-react-native';
 
 const ProfileScreen = () => {
     const { user, logout } = useAuth();
-    const { clearHistory, loadHistory } = useContext(RideContext);
+    const { clearHistory, loadHistory, isRecording, stopLiveRide } = useContext(RideContext);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        if (isRecording) {
+            console.log("Stopping active ride before logout...");
+            try {
+                // Stop without saving
+                await stopLiveRide(false);
+            } catch (e) {
+                console.error("Failed to stop ride on logout:", e);
+            }
+        }
         logout();
     };
 

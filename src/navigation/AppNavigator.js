@@ -11,6 +11,8 @@ import AchievementsScreen from '../screens/AchievementsScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import RideOptionsScreen from '../screens/RideOptionsScreen';
+import ManualRideScreen from '../screens/ManualRideScreen';
 
 import { theme } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
@@ -70,6 +72,16 @@ const MainTabNavigator = () => {
     );
 };
 
+const MainStack = () => {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+            <Stack.Screen name="RideOptions" component={RideOptionsScreen} />
+            <Stack.Screen name="ManualRide" component={ManualRideScreen} />
+        </Stack.Navigator>
+    );
+};
+
 const AuthStack = () => {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -93,7 +105,7 @@ const AppNavigator = () => {
 
     return (
         <NavigationContainer>
-            {userToken ? <MainTabNavigator /> : <AuthStack />}
+            {userToken ? <MainStack /> : <AuthStack />}
         </NavigationContainer>
     );
 };
