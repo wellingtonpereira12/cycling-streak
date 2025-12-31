@@ -25,6 +25,7 @@ const ActiveRideModal = () => {
     } = useContext(RideContext);
     const [durationString, setDurationString] = useState('00:00:00');
     const [isSaving, setIsSaving] = useState(false);
+    const [isConfirmingStop, setIsConfirmingStop] = useState(false);
     const webViewRef = useRef(null);
 
     // Initial HTML content with Leaflet
@@ -167,6 +168,47 @@ const ActiveRideModal = () => {
     };
 
     const handleStop = () => {
+        setIsConfirmingStop(true);
+    };
+
+    const onConfirmStop = async () => {
+        // If distance is zero, we just cleanup. If not, we save.
+        if (liveStats.distance === 0) {
+            await stopLiveRide(false); // False = do not save
+            cleanupLiveRide();
+            setIsConfirmingStop(false);
+        } else {
+            try {
+                setIsSaving(true);
+                setIsConfirmingStop(false);
+
+                // Capture FINAL daily totals for the summary
+                const finalDailyStats = {
+                    distance: (todayStats?.distance || 0) + liveStats.distance,
+                    duration: (todayStats?.duration || 0) * 60 + liveStats.duration
+                };
+
+                // Stop tracking and save to API
+                await stopLiveRide(true);
+
+                // Navigate immediately to summary screen with DAILY TOTALS
+                navigation.navigate('RideSummary', { rideData: finalDailyStats });
+
+                // Clean up the modal AFTER navigation has been triggered
+                cleanupLiveRide();
+                setIsSaving(false);
+            } catch (e) {
+                setIsSaving(false);
+                Alert.alert("Erro", "Falha ao salvar o pedal.");
+            }
+        }
+    };
+
+    const onCancelStop = () => {
+        setIsConfirmingStop(false);
+    };
+
+    const oldHandleStopPlaceholder = () => {
         // Even if we have daily totals, we only care if the CURRENT ride has distance to save
         if (liveStats.distance === 0) {
             Alert.alert(
@@ -294,35 +336,59 @@ const ActiveRideModal = () => {
                             <View style={styles.sheetHandle} />
 
                             <View style={styles.controlsRow}>
-                                {/* Left: Stop/Finish Button */}
-                                <TouchableOpacity
-                                    style={styles.circleActionButton}
-                                    onPress={handleStop}
-                                    activeOpacity={0.8}
-                                >
-                                    <View style={styles.iconCircleRed}>
-                                        <StopCircle size={24} color="#FF6B35" />
+                                {isConfirmingStop ? (
+                                    <View style={styles.confirmationContainer}>
+                                        <Text style={styles.confirmationText}>Deseja finalizar esta atividade?</Text>
+                                        <View style={styles.confirmationButtons}>
+                                            <TouchableOpacity
+                                                style={styles.confirmButton}
+                                                onPress={onConfirmStop}
+                                                activeOpacity={0.8}
+                                            >
+                                                <Text style={styles.confirmButtonText}>SIM</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={styles.cancelButton}
+                                                onPress={onCancelStop}
+                                                activeOpacity={0.8}
+                                            >
+                                                <Text style={styles.cancelButtonText}>NÃO</Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
-                                    <Text style={styles.actionLabel}>Finalizar</Text>
-                                </TouchableOpacity>
+                                ) : (
+                                    <>
+                                        {/* Left: Stop/Finish Button */}
+                                        <TouchableOpacity
+                                            style={styles.circleActionButton}
+                                            onPress={handleStop}
+                                            activeOpacity={0.8}
+                                        >
+                                            <View style={styles.iconCircleRed}>
+                                                <StopCircle size={24} color="#FF6B35" />
+                                            </View>
+                                            <Text style={styles.actionLabel}>Finalizar</Text>
+                                        </TouchableOpacity>
 
-                                {/* Center: Large Play/Pause */}
-                                <View style={styles.playButtonContainer}>
-                                    <TouchableOpacity
-                                        style={styles.largePlayButton}
-                                        onPress={isPaused ? resumeRide : pauseRide}
-                                        activeOpacity={0.9}
-                                    >
-                                        {isPaused ? (
-                                            <Play size={42} color="#FFF" fill="#FFF" style={{ marginLeft: 6 }} />
-                                        ) : (
-                                            <Pause size={42} color="#FFF" fill="#FFF" />
-                                        )}
-                                    </TouchableOpacity>
-                                </View>
+                                        {/* Center: Large Play/Pause */}
+                                        <View style={styles.playButtonContainer}>
+                                            <TouchableOpacity
+                                                style={styles.largePlayButton}
+                                                onPress={isPaused ? resumeRide : pauseRide}
+                                                activeOpacity={0.9}
+                                            >
+                                                {isPaused ? (
+                                                    <Play size={42} color="#FFF" fill="#FFF" style={{ marginLeft: 6 }} />
+                                                ) : (
+                                                    <Pause size={42} color="#FFF" fill="#FFF" />
+                                                )}
+                                            </TouchableOpacity>
+                                        </View>
 
-                                {/* Right: Balance spacer */}
-                                <View style={{ width: 60 }} />
+                                        {/* Right: Balance spacer */}
+                                        <View style={{ width: 60 }} />
+                                    </>
+                                )}
                             </View>
                         </View>
                         {/* Loading Overlay */}
@@ -536,6 +602,55 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontSize: 14,
         color: '#888',
+    },
+    confirmationContainer: {
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: 10,
+    },
+    confirmationText: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1A1A1A',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    confirmationButtons: {
+        flexDirection: 'row',
+        gap: 16,
+        width: '100%',
+        justifyContent: 'center',
+    },
+    confirmButton: {
+        backgroundColor: '#FF6B35',
+        paddingVertical: 14,
+        paddingHorizontal: 40,
+        borderRadius: 30,
+        minWidth: 120,
+        alignItems: 'center',
+        shadowColor: '#FF6B35',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    confirmButtonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '800',
+    },
+    cancelButton: {
+        backgroundColor: '#F5F5F5',
+        paddingVertical: 14,
+        paddingHorizontal: 40,
+        borderRadius: 30,
+        minWidth: 120,
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: '#666',
+        fontSize: 16,
+        fontWeight: '700',
     },
 });
 
