@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useRef } from 'react';
+import { AppState } from 'react-native';
 import api from '../services/api';
 import { useAuth } from './AuthContext';
 
@@ -25,6 +26,11 @@ export const RideProvider = ({ children }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [liveStats, setLiveStats] = useState({ distance: 0, duration: 0, path: [] });
     const [isPaused, setIsPaused] = useState(false);
+    const isRecordingRef = useRef(isRecording);
+
+    useEffect(() => {
+        isRecordingRef.current = isRecording;
+    }, [isRecording]);
 
     // Daily Stats Calculation
     const [todayStats, setTodayStats] = useState({ distance: 0, duration: 0 });
@@ -114,6 +120,22 @@ export const RideProvider = ({ children }) => {
             fetchDashboard();
         }
     }, [userToken, fetchDashboard]);
+
+    // Cleanup on logout
+    useEffect(() => {
+        const handleLogout = async () => {
+            if (!userToken && isRecordingRef.current) {
+                console.log("Stopping recording due to logout");
+                try {
+                    await stopLiveRide(false); // Stop without saving
+                    cleanupLiveRide();
+                } catch (error) {
+                    console.error("Error stopping ride on logout:", error);
+                }
+            }
+        };
+        handleLogout();
+    }, [userToken]);
 
     // Check if tracking is already running (e.g. after reload or app restart)
     useEffect(() => {
