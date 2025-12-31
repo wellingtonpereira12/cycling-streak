@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../styles/theme';
@@ -7,37 +7,66 @@ import { RideContext } from '../context/RideContext';
 
 const ManualRideScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
-    const { addRide } = useContext(RideContext);
+    const { addRide, todayStats } = useContext(RideContext);
 
     const [distance, setDistance] = useState('');
     const [duration, setDuration] = useState('');
+    const [initialStats, setInitialStats] = useState({ distance: 0, duration: 0 });
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
+    // Pre-fill with daily totals on mount
+    useEffect(() => {
+        if (todayStats) {
+            setDistance(todayStats.distance ? todayStats.distance.toString() : '');
+            setDuration(todayStats.duration ? todayStats.duration.toString() : '');
+            setInitialStats({
+                distance: todayStats.distance || 0,
+                duration: todayStats.duration || 0
+            });
+        }
+    }, [todayStats]);
+
     const handleSubmit = async () => {
         if (!distance || !duration) {
-            setErrorMessage('Preencha distância e tempo');
+            setErrorMessage('Preencha o novo total do dia');
             return;
         }
 
-        const distanceNum = parseFloat(distance);
-        const durationNum = parseInt(duration);
+        const inputDistance = parseFloat(distance);
+        const inputDuration = parseInt(duration);
 
-        if (isNaN(distanceNum) || distanceNum <= 0) {
-            setErrorMessage('Digite uma distância válida');
+        if (isNaN(inputDistance) || inputDistance < 0) {
+            setErrorMessage('Distância inválida');
             return;
         }
 
-        if (isNaN(durationNum) || durationNum <= 0) {
-            setErrorMessage('Digite um tempo válido');
+        if (isNaN(inputDuration) || inputDuration < 0) {
+            setErrorMessage('Tempo inválido');
+            return;
+        }
+
+        // Calculate Delta (What to Add)
+        const deltaDistance = inputDistance - initialStats.distance;
+        const deltaDuration = inputDuration - initialStats.duration;
+
+        if (deltaDistance <= 0.01 && deltaDuration <= 0) {
+            setErrorMessage('O novo total deve ser maior que o atual para adicionar um pedal.');
+            return;
+        }
+
+        // Prevent adding negative values if user decreases the total
+        if (deltaDistance < 0 || deltaDuration < 0) {
+            setErrorMessage('Não é possível reduzir o total acumulado.');
             return;
         }
 
         setErrorMessage('');
         setLoading(true);
         try {
-            await addRide(distanceNum, durationNum);
-            Alert.alert("Sucesso", "Pedal registrado!", [
+            // We only save the difference
+            await addRide(deltaDistance, deltaDuration);
+            Alert.alert("Sucesso", `Adicionado +${deltaDistance.toFixed(1)}km e +${deltaDuration}min ao seu dia!`, [
                 { text: "OK", onPress: () => navigation.popToTop() }
             ]);
         } catch (error) {
@@ -56,10 +85,11 @@ const ManualRideScreen = ({ navigation }) => {
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.label}>Distância (km)</Text>
+                <Text style={styles.label}>Distância Total do Dia (km)</Text>
+                <Text style={styles.helperText}>Atual: {initialStats.distance.toFixed(1)} km</Text>
                 <TextInput
                     style={styles.input}
-                    placeholder="Ex: 15.5"
+                    placeholder="Total do dia"
                     placeholderTextColor={theme.colors.textSecondary}
                     value={distance}
                     onChangeText={setDistance}
@@ -67,7 +97,8 @@ const ManualRideScreen = ({ navigation }) => {
                     autoFocus
                 />
 
-                <Text style={styles.label}>Tempo (minutos)</Text>
+                <Text style={styles.label}>Tempo Total do Dia (min)</Text>
+                <Text style={styles.helperText}>Atual: {initialStats.duration} min</Text>
                 <TextInput
                     style={styles.input}
                     placeholder="Ex: 45"
@@ -93,7 +124,7 @@ const ManualRideScreen = ({ navigation }) => {
                     ) : (
                         <>
                             <Check size={20} color={theme.colors.text} style={{ marginRight: 8 }} />
-                            <Text style={styles.buttonText}>REGISTRAR PEDAL</Text>
+                            <Text style={styles.buttonText}>ATUALIZAR TOTAL</Text>
                         </>
                     )}
                 </TouchableOpacity>
@@ -131,6 +162,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginBottom: theme.spacing.xs,
         marginTop: theme.spacing.s,
+    },
+    helperText: {
+        color: theme.colors.textSecondary,
+        fontSize: 14,
+        marginBottom: theme.spacing.s,
     },
     input: {
         backgroundColor: theme.colors.surface,

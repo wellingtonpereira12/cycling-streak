@@ -9,7 +9,7 @@ import { StopCircle, MapPin, Watch, ChevronDown, Play, Pause } from 'lucide-reac
 const { width, height } = Dimensions.get('window');
 
 const ActiveRideModal = () => {
-    const { isRecording, isModalVisible, setIsModalVisible, liveStats, stopLiveRide, isPaused, pauseRide, resumeRide } = useContext(RideContext);
+    const { isRecording, isModalVisible, setIsModalVisible, liveStats, stopLiveRide, isPaused, pauseRide, resumeRide, todayStats } = useContext(RideContext);
     const [durationString, setDurationString] = useState('00:00:00');
     const webViewRef = useRef(null);
 
@@ -108,8 +108,11 @@ const ActiveRideModal = () => {
             const s = Math.floor(seconds % 60);
             return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         };
-        setDurationString(formatTime(liveStats.duration));
-    }, [liveStats.duration]);
+
+        // Calculate total seconds: daily total (min -> sec) + live session (sec)
+        const totalSeconds = (todayStats?.duration || 0) * 60 + liveStats.duration;
+        setDurationString(formatTime(totalSeconds));
+    }, [liveStats.duration, todayStats]);
 
     // Send updates to WebView
     const updateMap = (path) => {
@@ -150,10 +153,29 @@ const ActiveRideModal = () => {
     };
 
     const handleStop = () => {
+        // Even if we have daily totals, we only care if the CURRENT ride has distance to save
         if (liveStats.distance === 0) {
             Alert.alert(
                 "Pedal Zerado",
-                "Você não percorreu nenhuma distância. Deseja descartar?",
+                "Você não percorreu nenhuma distância nesta sessão. Deseja descartar?",
+                [
+                    {
+                        text: "Continuar",
+                        style: "cancel"
+                    },
+                    {
+                        text: "Descartar",
+                        style: "destructive",
+                        onPress: async () => {
+                            await stopLiveRide(false); // False = do not save
+                        }
+                    }
+                ]
+            );
+        } else {
+            Alert.alert(
+                "Finalizar Pedal",
+                "O que deseja fazer com esta atividade?",
                 [
                     { text: "Continuar", style: "cancel" },
                     {
@@ -162,37 +184,21 @@ const ActiveRideModal = () => {
                         onPress: async () => {
                             await stopLiveRide(false); // Don't save
                         }
+                    },
+                    {
+                        text: "Salvar",
+                        onPress: async () => {
+                            try {
+                                const result = await stopLiveRide(true); // Save
+                                Alert.alert("Sucesso", `Pedal de ${result.distance}km salvo!`);
+                            } catch (e) {
+                                Alert.alert("Erro", "Falha ao salvar o pedal.");
+                            }
+                        }
                     }
                 ]
             );
-            return;
         }
-
-        Alert.alert(
-            "Finalizar Pedal",
-            "O que deseja fazer com esta atividade?",
-            [
-                { text: "Continuar", style: "cancel" },
-                {
-                    text: "Descartar",
-                    style: "destructive",
-                    onPress: async () => {
-                        await stopLiveRide(false); // Don't save
-                    }
-                },
-                {
-                    text: "Salvar",
-                    onPress: async () => {
-                        try {
-                            const result = await stopLiveRide(true); // Save
-                            Alert.alert("Sucesso", `Pedal de ${result.distance}km salvo!`);
-                        } catch (e) {
-                            Alert.alert("Erro", "Falha ao salvar o pedal.");
-                        }
-                    }
-                }
-            ]
-        );
     };
 
     if (!isRecording) return null;
@@ -235,8 +241,10 @@ const ActiveRideModal = () => {
                     <View style={styles.statsCard}>
                         <View style={styles.statsRow}>
                             <View style={styles.statItem}>
-                                <Text style={styles.statValue}>{liveStats.distance.toFixed(2)}</Text>
-                                <Text style={styles.statLabel}>KM</Text>
+                                <Text style={styles.statValue}>
+                                    {((todayStats?.distance || 0) + liveStats.distance).toFixed(1)}
+                                </Text>
+                                <Text style={styles.statLabel}>Distância (km)</Text>
                             </View>
                             <View style={styles.dividerVertical} />
                             <View style={styles.statItem}>

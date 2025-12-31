@@ -26,6 +26,33 @@ export const RideProvider = ({ children }) => {
     const [liveStats, setLiveStats] = useState({ distance: 0, duration: 0, path: [] });
     const [isPaused, setIsPaused] = useState(false);
 
+    // Daily Stats Calculation
+    const [todayStats, setTodayStats] = useState({ distance: 0, duration: 0 });
+
+    useEffect(() => {
+        if (!rides || rides.length === 0) {
+            setTodayStats({ distance: 0, duration: 0 });
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todaysRides = rides.filter(ride => {
+            const rideDate = new Date(ride.data_pedal);
+            rideDate.setHours(0, 0, 0, 0);
+            return rideDate.getTime() === today.getTime();
+        });
+
+        const totalDist = todaysRides.reduce((acc, ride) => acc + Number(ride.distancia_km || 0), 0);
+        const totalDur = todaysRides.reduce((acc, ride) => acc + Number(ride.duracao_min || 0), 0);
+
+        setTodayStats({
+            distance: totalDist,
+            duration: totalDur
+        });
+    }, [rides]);
+
     const fetchDashboard = useCallback(async () => {
         if (!userToken) return;
         setLoading(true);
@@ -202,7 +229,8 @@ export const RideProvider = ({ children }) => {
             stopLiveRide,
             isPaused,
             pauseRide,
-            resumeRide
+            resumeRide,
+            todayStats
         }}>
             {children}
         </RideContext.Provider>
