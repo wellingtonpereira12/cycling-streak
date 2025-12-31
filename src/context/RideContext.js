@@ -7,6 +7,14 @@ export const RideContext = createContext();
 
 import * as LocationTracker from '../services/LocationTracking';
 
+// Helper to get local date string YYYY-MM-DD
+const getLocalDateString = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 export const RideProvider = ({ children }) => {
     const { userToken } = useAuth();
     const [rides, setRides] = useState([]);
@@ -41,13 +49,12 @@ export const RideProvider = ({ children }) => {
             return;
         }
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayStr = getLocalDateString();
 
         const todaysRides = rides.filter(ride => {
-            const rideDate = new Date(ride.data_pedal);
-            rideDate.setHours(0, 0, 0, 0);
-            return rideDate.getTime() === today.getTime();
+            if (!ride.data_pedal) return false;
+            const rideDateStr = ride.data_pedal.split('T')[0];
+            return rideDateStr === todayStr;
         });
 
         const totalDist = todaysRides.reduce((acc, ride) => acc + Number(ride.distancia_km || 0), 0);
@@ -216,7 +223,7 @@ export const RideProvider = ({ children }) => {
             const payload = {
                 distancia_km: (typeof distancia === 'number' && !isNaN(distancia)) ? distancia : 0,
                 duracao_seg: (typeof duracao === 'number' && !isNaN(duracao)) ? Math.round(duracao) : 0,
-                data_pedal: new Date().toISOString()
+                data_pedal: getLocalDateString()
             };
 
             const res = await api.post('/rides', payload);

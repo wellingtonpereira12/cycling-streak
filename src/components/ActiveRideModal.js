@@ -173,35 +173,37 @@ const ActiveRideModal = () => {
     };
 
     const onConfirmStop = async () => {
-        // Allow saving if either distance > 0 OR duration > 0 (for testing/stationary)
-        if (liveStats.distance === 0 && liveStats.duration === 0) {
+        // If distance is zero, cancel the recording and don't save to DB
+        // Also skip stationary manual entries if they ever reach here
+        if (liveStats.distance === 0) {
             await stopLiveRide(false); // False = do not save
             cleanupLiveRide();
             setIsConfirmingStop(false);
-        } else {
-            try {
-                setIsSaving(true);
-                setIsConfirmingStop(false);
+            return;
+        }
 
-                // Capture FINAL daily totals for the summary
-                const finalDailyStats = {
-                    distance: (todayStats?.distance || 0) + liveStats.distance,
-                    duration: (todayStats?.duration || 0) + liveStats.duration
-                };
+        try {
+            setIsSaving(true);
+            setIsConfirmingStop(false);
 
-                // Stop tracking and save to API
-                await stopLiveRide(true);
+            // Capture FINAL daily totals for the summary
+            const finalDailyStats = {
+                distance: (todayStats?.distance || 0) + liveStats.distance,
+                duration: (todayStats?.duration || 0) + liveStats.duration
+            };
 
-                // Navigate immediately to summary screen with DAILY TOTALS
-                navigation.navigate('RideSummary', { rideData: finalDailyStats });
+            // Stop tracking and save to API
+            await stopLiveRide(true);
 
-                // Clean up the modal AFTER navigation has been triggered
-                cleanupLiveRide();
-                setIsSaving(false);
-            } catch (e) {
-                setIsSaving(false);
-                Alert.alert("Erro", "Falha ao salvar o pedal.");
-            }
+            // Navigate immediately to summary screen with DAILY TOTALS
+            navigation.navigate('RideSummary', { rideData: finalDailyStats });
+
+            // Clean up the modal AFTER navigation has been triggered
+            cleanupLiveRide();
+            setIsSaving(false);
+        } catch (e) {
+            setIsSaving(false);
+            Alert.alert("Erro", "Falha ao salvar o pedal.");
         }
     };
 

@@ -18,10 +18,16 @@ const RideModal = ({ visible, onClose, onSubmit }) => {
 
             setFetchingData(true);
             try {
-                const today = new Date().toISOString().split('T')[0];
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const today = `${year}-${month}-${day}`;
+
                 const res = await api.get('/rides');
                 const todayRide = res.data.find(ride => {
-                    const rideDate = new Date(ride.data_pedal).toISOString().split('T')[0];
+                    if (!ride.data_pedal) return false;
+                    const rideDate = ride.data_pedal.split('T')[0];
                     return rideDate === today;
                 });
 
