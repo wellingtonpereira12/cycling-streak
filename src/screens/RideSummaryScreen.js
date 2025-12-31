@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Dimensions, Ani
 import { theme } from '../styles/theme';
 import { Trophy, Clock, Milestone, ArrowRight } from 'lucide-react-native';
 
+import { Audio } from 'expo-av';
+
 const { width } = Dimensions.get('window');
 
 const RideSummaryScreen = ({ route, navigation }) => {
@@ -12,6 +14,7 @@ const RideSummaryScreen = ({ route, navigation }) => {
     const slideAnim = useRef(new Animated.Value(30)).current;
 
     useEffect(() => {
+        // Animation
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
@@ -24,13 +27,35 @@ const RideSummaryScreen = ({ route, navigation }) => {
                 useNativeDriver: true,
             })
         ]).start();
+
+        // Sound Effect
+        let soundObject = null;
+        const playSound = async () => {
+            try {
+                const { sound } = await Audio.Sound.createAsync(
+                    { uri: 'https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3' }, // Joyful achievement sound
+                    { shouldPlay: true }
+                );
+                soundObject = sound;
+            } catch (error) {
+                console.log('Error playing sound:', error);
+            }
+        };
+
+        playSound();
+
+        return () => {
+            if (soundObject) {
+                soundObject.unloadAsync();
+            }
+        };
     }, []);
 
     const formatDuration = (seconds) => {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
         const s = seconds % 60;
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
     };
 
     const handleHome = () => {
