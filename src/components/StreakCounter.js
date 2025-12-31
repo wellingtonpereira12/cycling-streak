@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Flame } from 'lucide-react-native';
-import { theme } from '../styles/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const StreakCounter = ({ streak, riskLevel }) => {
+    const { theme } = useTheme();
+
     const getFlameColor = () => {
         if (streak === 0) return theme.colors.disabled;
         if (riskLevel === 'danger') return theme.colors.error;
@@ -11,47 +13,49 @@ const StreakCounter = ({ streak, riskLevel }) => {
         return theme.colors.primary; // Standard Fire
     };
 
+    const dynamicStyles = StyleSheet.create({
+        container: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginVertical: 32,
+        },
+        circle: {
+            width: 200,
+            height: 200,
+            borderRadius: 100,
+            borderWidth: 4,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.colors.surface,
+            elevation: 10,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4.65,
+        },
+        count: {
+            fontSize: 64,
+            fontWeight: 'bold',
+            color: theme.colors.text,
+            marginTop: 8,
+        },
+        label: {
+            fontSize: 14,
+            color: theme.colors.textSecondary,
+            textTransform: 'uppercase',
+            letterSpacing: 2,
+        }
+    });
+
     return (
-        <View style={styles.container}>
-            <View style={[styles.circle, { borderColor: getFlameColor() }]}>
+        <View style={dynamicStyles.container}>
+            <View style={[dynamicStyles.circle, { borderColor: getFlameColor() }]}>
                 <Flame size={64} color={getFlameColor()} fill={streak > 0 ? getFlameColor() : 'transparent'} />
-                <Text style={styles.count}>{streak}</Text>
-                <Text style={styles.label}>DIAS</Text>
+                <Text style={dynamicStyles.count}>{streak}</Text>
+                <Text style={dynamicStyles.label}>DIAS</Text>
             </View>
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginVertical: theme.spacing.xl,
-    },
-    circle: {
-        width: 200,
-        height: 200,
-        borderRadius: 100,
-        borderWidth: 4,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: theme.colors.surface,
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4.65,
-    },
-    count: {
-        ...theme.typography.h1,
-        fontSize: 64,
-        marginTop: theme.spacing.s,
-    },
-    label: {
-        ...theme.typography.caption,
-        textTransform: 'uppercase',
-        letterSpacing: 2,
-    }
-});
 
 export default StreakCounter;

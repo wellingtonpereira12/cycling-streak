@@ -4,17 +4,29 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
 import { RideProvider } from './src/context/RideContext';
 import { AuthProvider } from './src/context/AuthContext';
-import { theme } from './src/styles/theme';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+
+const AppContent = () => {
+  const { theme, isDark } = useTheme();
+
+  return (
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} backgroundColor={theme.colors.background} />
+      <AppNavigator />
+    </>
+  );
+};
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <RideProvider>
-          <StatusBar style="light" backgroundColor={theme.colors.background} />
-          <AppNavigator />
-        </RideProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <RideProvider>
+            <AppContent />
+          </RideProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

@@ -15,8 +15,8 @@ import RideOptionsScreen from '../screens/RideOptionsScreen';
 import ManualRideScreen from '../screens/ManualRideScreen';
 import RideSummaryScreen from '../screens/RideSummaryScreen';
 
-import { theme } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -25,6 +25,7 @@ const Stack = createNativeStackNavigator();
 
 const MainTabNavigator = () => {
     const insets = useSafeAreaInsets();
+    const { theme } = useTheme();
 
     return (
         <Tab.Navigator
@@ -95,6 +96,7 @@ const AuthStack = () => {
 
 const AppNavigator = () => {
     const { userToken, isLoading } = useAuth();
+    const { theme } = useTheme();
     console.log("AppNavigator render: userToken =", userToken);
 
     if (isLoading) {

@@ -1,14 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { theme } from '../styles/theme';
+import { useTheme } from '../context/ThemeContext';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import { RideContext } from '../context/RideContext';
 
 const ManualRideScreen = ({ navigation }) => {
     const insets = useSafeAreaInsets();
     const { addRide, todayStats } = useContext(RideContext);
+    const { theme } = useTheme();
 
     const [distance, setDistance] = useState('');
     const [duration, setDuration] = useState('');
@@ -87,20 +87,97 @@ const ManualRideScreen = ({ navigation }) => {
         }
     };
 
+    const dynamicStyles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.colors.background,
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 16,
+            marginBottom: 24,
+        },
+        backButton: {
+            marginRight: 16,
+            padding: 8,
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: theme.colors.text,
+        },
+        content: {
+            padding: 24,
+            gap: 16,
+        },
+        label: {
+            color: theme.colors.text,
+            fontSize: 16,
+            fontWeight: '600',
+            marginBottom: 4,
+            marginTop: 8,
+        },
+        helperText: {
+            color: theme.colors.textSecondary,
+            fontSize: 14,
+            marginBottom: 8,
+        },
+        input: {
+            backgroundColor: theme.colors.surface,
+            color: theme.colors.text,
+            padding: 16,
+            borderRadius: 12,
+            fontSize: 18,
+            borderWidth: 1,
+            borderColor: theme.colors.surfaceLight,
+        },
+        button: {
+            backgroundColor: theme.colors.primary,
+            padding: 16,
+            borderRadius: 16,
+            alignItems: 'center',
+            marginTop: 32,
+            flexDirection: 'row',
+            justifyContent: 'center',
+        },
+        buttonDisabled: {
+            opacity: 0.6,
+        },
+        buttonText: {
+            color: '#FFF',
+            fontSize: 18,
+            fontWeight: 'bold',
+            letterSpacing: 1,
+        },
+        errorContainer: {
+            padding: 16,
+            backgroundColor: 'rgba(207, 102, 121, 0.1)',
+            borderRadius: 8,
+            borderLeftWidth: 3,
+            borderLeftColor: theme.colors.error,
+            marginTop: 16,
+        },
+        errorText: {
+            color: theme.colors.error,
+            fontSize: 14,
+        },
+    });
+
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <View style={[dynamicStyles.container, { paddingTop: insets.top }]}>
+            <View style={dynamicStyles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.backButton}>
                     <ArrowLeft size={24} color={theme.colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.title}>Entrada Manual</Text>
+                <Text style={dynamicStyles.title}>Entrada Manual</Text>
             </View>
 
-            <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.label}>Distância Total do Dia (km)</Text>
-                <Text style={styles.helperText}>Atual: {initialStats.distance.toFixed(1)} km</Text>
+            <ScrollView contentContainerStyle={dynamicStyles.content}>
+                <Text style={dynamicStyles.label}>Distância Total do Dia (km)</Text>
+                <Text style={dynamicStyles.helperText}>Atual: {initialStats.distance.toFixed(1)} km</Text>
                 <TextInput
-                    style={styles.input}
+                    style={dynamicStyles.input}
                     placeholder="Total do dia"
                     placeholderTextColor={theme.colors.textSecondary}
                     value={distance}
@@ -109,10 +186,10 @@ const ManualRideScreen = ({ navigation }) => {
                     autoFocus
                 />
 
-                <Text style={styles.label}>Tempo Total do Dia (min)</Text>
-                <Text style={styles.helperText}>Atual: {initialStats.duration} min</Text>
+                <Text style={dynamicStyles.label}>Tempo Total do Dia (min)</Text>
+                <Text style={dynamicStyles.helperText}>Atual: {initialStats.duration} min</Text>
                 <TextInput
-                    style={styles.input}
+                    style={dynamicStyles.input}
                     placeholder="Ex: 45"
                     placeholderTextColor={theme.colors.textSecondary}
                     value={duration}
@@ -121,22 +198,22 @@ const ManualRideScreen = ({ navigation }) => {
                 />
 
                 {errorMessage ? (
-                    <View style={styles.errorContainer}>
-                        <Text style={styles.errorText}>{errorMessage}</Text>
+                    <View style={dynamicStyles.errorContainer}>
+                        <Text style={dynamicStyles.errorText}>{errorMessage}</Text>
                     </View>
                 ) : null}
 
                 <TouchableOpacity
-                    style={[styles.button, loading && styles.buttonDisabled]}
+                    style={[dynamicStyles.button, loading && dynamicStyles.buttonDisabled]}
                     onPress={handleSubmit}
                     disabled={loading}
                 >
                     {loading ? (
-                        <ActivityIndicator color={theme.colors.text} />
+                        <ActivityIndicator color="#FFF" />
                     ) : (
                         <>
-                            <Check size={20} color={theme.colors.text} style={{ marginRight: 8 }} />
-                            <Text style={styles.buttonText}>ATUALIZAR TOTAL</Text>
+                            <Check size={20} color="#FFF" style={{ marginRight: 8 }} />
+                            <Text style={dynamicStyles.buttonText}>ATUALIZAR TOTAL</Text>
                         </>
                     )}
                 </TouchableOpacity>
@@ -144,79 +221,5 @@ const ManualRideScreen = ({ navigation }) => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: theme.spacing.m,
-        marginBottom: theme.spacing.l,
-    },
-    backButton: {
-        marginRight: theme.spacing.m,
-        padding: 8,
-    },
-    title: {
-        ...theme.typography.h2,
-        fontSize: 24,
-    },
-    content: {
-        padding: theme.spacing.l,
-        gap: theme.spacing.m,
-    },
-    label: {
-        color: theme.colors.text,
-        fontSize: 16,
-        fontWeight: '600',
-        marginBottom: theme.spacing.xs,
-        marginTop: theme.spacing.s,
-    },
-    helperText: {
-        color: theme.colors.textSecondary,
-        fontSize: 14,
-        marginBottom: theme.spacing.s,
-    },
-    input: {
-        backgroundColor: theme.colors.surface,
-        color: theme.colors.text,
-        padding: theme.spacing.l,
-        borderRadius: theme.borderRadius.m,
-        fontSize: 18,
-    },
-    button: {
-        backgroundColor: theme.colors.primary,
-        padding: theme.spacing.l,
-        borderRadius: theme.borderRadius.l,
-        alignItems: 'center',
-        marginTop: theme.spacing.xl,
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    buttonDisabled: {
-        opacity: 0.6,
-    },
-    buttonText: {
-        color: theme.colors.text,
-        fontSize: 18,
-        fontWeight: 'bold',
-        letterSpacing: 1,
-    },
-    errorContainer: {
-        padding: theme.spacing.m,
-        backgroundColor: 'rgba(207, 102, 121, 0.1)',
-        borderRadius: theme.borderRadius.m,
-        borderLeftWidth: 3,
-        borderLeftColor: theme.colors.error,
-        marginTop: theme.spacing.m,
-    },
-    errorText: {
-        color: theme.colors.error,
-        fontSize: 14,
-    },
-});
 
 export default ManualRideScreen;

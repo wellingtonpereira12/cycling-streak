@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Modal, ActivityIndicator } from 'react-native';
-import { theme } from '../styles/theme';
+import { useTheme } from '../context/ThemeContext';
 import { X } from 'lucide-react-native';
 import api from '../services/api';
 
 const RideModal = ({ visible, onClose, onSubmit }) => {
+    const { theme } = useTheme();
     const [distance, setDistance] = useState('');
     const [duration, setDuration] = useState('');
     const [loading, setLoading] = useState(false);
@@ -82,6 +83,88 @@ const RideModal = ({ visible, onClose, onSubmit }) => {
         onClose();
     };
 
+    const dynamicStyles = StyleSheet.create({
+        overlay: {
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 24,
+        },
+        modal: {
+            backgroundColor: theme.colors.surface,
+            borderRadius: 20,
+            padding: 24,
+            width: '100%',
+            maxWidth: 400,
+        },
+        header: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 24,
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: theme.colors.text,
+        },
+        form: {
+            gap: 16,
+        },
+        label: {
+            color: theme.colors.text,
+            fontSize: 16,
+            fontWeight: '600',
+            marginBottom: 4,
+        },
+        input: {
+            backgroundColor: theme.colors.background,
+            color: theme.colors.text,
+            padding: 16,
+            borderRadius: 12,
+            fontSize: 16,
+            borderWidth: 1,
+            borderColor: theme.colors.surfaceLight,
+        },
+        button: {
+            backgroundColor: theme.colors.primary,
+            padding: 16,
+            borderRadius: 12,
+            alignItems: 'center',
+            marginTop: 8,
+        },
+        buttonDisabled: {
+            opacity: 0.6,
+        },
+        buttonText: {
+            color: '#FFF',
+            fontSize: 18,
+            fontWeight: 'bold',
+        },
+        errorContainer: {
+            padding: 16,
+            backgroundColor: 'rgba(207, 102, 121, 0.1)',
+            borderRadius: 12,
+            borderLeftWidth: 3,
+            borderLeftColor: theme.colors.error,
+        },
+        errorText: {
+            color: theme.colors.error,
+            fontSize: 14,
+        },
+        loadingContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 40,
+            gap: 16,
+        },
+        loadingText: {
+            color: theme.colors.textSecondary,
+            fontSize: 14,
+        },
+    });
+
     return (
         <Modal
             visible={visible}
@@ -89,26 +172,26 @@ const RideModal = ({ visible, onClose, onSubmit }) => {
             animationType="fade"
             onRequestClose={handleClose}
         >
-            <View style={styles.overlay}>
-                <View style={styles.modal}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>Registrar Pedal</Text>
+            <View style={dynamicStyles.overlay}>
+                <View style={dynamicStyles.modal}>
+                    <View style={dynamicStyles.header}>
+                        <Text style={dynamicStyles.title}>Registrar Pedal</Text>
                         <TouchableOpacity onPress={handleClose}>
                             <X size={24} color={theme.colors.text} />
                         </TouchableOpacity>
                     </View>
 
-                    <View style={styles.form}>
+                    <View style={dynamicStyles.form}>
                         {fetchingData ? (
-                            <View style={styles.loadingContainer}>
+                            <View style={dynamicStyles.loadingContainer}>
                                 <ActivityIndicator size="small" color={theme.colors.primary} />
-                                <Text style={styles.loadingText}>Carregando dados...</Text>
+                                <Text style={dynamicStyles.loadingText}>Carregando dados...</Text>
                             </View>
                         ) : (
                             <>
-                                <Text style={styles.label}>Distância (km)</Text>
+                                <Text style={dynamicStyles.label}>Distância (km)</Text>
                                 <TextInput
-                                    style={styles.input}
+                                    style={dynamicStyles.input}
                                     placeholder="Ex: 15.5"
                                     placeholderTextColor={theme.colors.textSecondary}
                                     value={distance}
@@ -116,9 +199,9 @@ const RideModal = ({ visible, onClose, onSubmit }) => {
                                     keyboardType="decimal-pad"
                                 />
 
-                                <Text style={styles.label}>Tempo (minutos)</Text>
+                                <Text style={dynamicStyles.label}>Tempo (minutos)</Text>
                                 <TextInput
-                                    style={styles.input}
+                                    style={dynamicStyles.input}
                                     placeholder="Ex: 45"
                                     placeholderTextColor={theme.colors.textSecondary}
                                     value={duration}
@@ -127,20 +210,20 @@ const RideModal = ({ visible, onClose, onSubmit }) => {
                                 />
 
                                 {errorMessage ? (
-                                    <View style={styles.errorContainer}>
-                                        <Text style={styles.errorText}>{errorMessage}</Text>
+                                    <View style={dynamicStyles.errorContainer}>
+                                        <Text style={dynamicStyles.errorText}>{errorMessage}</Text>
                                     </View>
                                 ) : null}
 
                                 <TouchableOpacity
-                                    style={[styles.button, loading && styles.buttonDisabled]}
+                                    style={[dynamicStyles.button, loading && dynamicStyles.buttonDisabled]}
                                     onPress={handleSubmit}
                                     disabled={loading}
                                 >
                                     {loading ? (
-                                        <ActivityIndicator color={theme.colors.text} />
+                                        <ActivityIndicator color="#FFF" />
                                     ) : (
-                                        <Text style={styles.buttonText}>Registrar</Text>
+                                        <Text style={dynamicStyles.buttonText}>Registrar</Text>
                                     )}
                                 </TouchableOpacity>
                             </>
@@ -151,85 +234,5 @@ const RideModal = ({ visible, onClose, onSubmit }) => {
         </Modal>
     );
 };
-
-const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: theme.spacing.l,
-    },
-    modal: {
-        backgroundColor: theme.colors.surface,
-        borderRadius: theme.borderRadius.l,
-        padding: theme.spacing.l,
-        width: '100%',
-        maxWidth: 400,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: theme.spacing.l,
-    },
-    title: {
-        ...theme.typography.h2,
-    },
-    form: {
-        gap: theme.spacing.m,
-    },
-    label: {
-        color: theme.colors.text,
-        fontSize: 16,
-        fontWeight: '600',
-        marginBottom: theme.spacing.xs,
-    },
-    input: {
-        backgroundColor: theme.colors.background,
-        color: theme.colors.text,
-        padding: theme.spacing.m,
-        borderRadius: theme.borderRadius.m,
-        fontSize: 16,
-        borderWidth: 1,
-        borderColor: theme.colors.surfaceLight,
-    },
-    button: {
-        backgroundColor: theme.colors.primary,
-        padding: theme.spacing.m,
-        borderRadius: theme.borderRadius.m,
-        alignItems: 'center',
-        marginTop: theme.spacing.s,
-    },
-    buttonDisabled: {
-        opacity: 0.6,
-    },
-    buttonText: {
-        color: theme.colors.text,
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    errorContainer: {
-        padding: theme.spacing.m,
-        backgroundColor: 'rgba(207, 102, 121, 0.1)',
-        borderRadius: theme.borderRadius.m,
-        borderLeftWidth: 3,
-        borderLeftColor: theme.colors.error,
-    },
-    errorText: {
-        color: theme.colors.error,
-        fontSize: 14,
-    },
-    loadingContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: theme.spacing.xl,
-        gap: theme.spacing.m,
-    },
-    loadingText: {
-        color: theme.colors.textSecondary,
-        fontSize: 14,
-    },
-});
 
 export default RideModal;

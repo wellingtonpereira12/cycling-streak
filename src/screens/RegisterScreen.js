@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { theme } from '../styles/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const RegisterScreen = ({ navigation }) => {
     const { register } = useAuth();
+    const { theme } = useTheme();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -51,28 +52,111 @@ const RegisterScreen = ({ navigation }) => {
 
     const insets = useSafeAreaInsets();
 
-    return (
-        <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-            <View style={styles.content}>
-                <View style={styles.logoContainer}>
-                    <Image source={require('../../assets/logo.png')} style={styles.logo} />
-                </View>
-                <Text style={styles.title}>Crie sua conta</Text>
-                <Text style={styles.subtitle}>Comece sua jornada de pedaladas hoje.</Text>
+    const dynamicStyles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.colors.background,
+        },
+        content: {
+            flex: 1,
+            padding: 16,
+            justifyContent: 'center',
+        },
+        logoContainer: {
+            alignItems: 'center',
+            marginBottom: 32,
+        },
+        logo: {
+            width: 100,
+            height: 100,
+            borderRadius: 50,
+        },
+        title: {
+            fontSize: 32,
+            fontWeight: 'bold',
+            color: theme.colors.text,
+            marginBottom: 8,
+        },
+        subtitle: {
+            fontSize: 18,
+            color: theme.colors.textSecondary,
+            marginBottom: 32,
+        },
+        form: {
+            gap: 16,
+        },
+        label: {
+            color: theme.colors.textSecondary,
+            marginBottom: 4,
+            fontSize: 16,
+        },
+        input: {
+            backgroundColor: theme.colors.surface,
+            color: theme.colors.text,
+            padding: 16,
+            borderRadius: 8,
+            fontSize: 16,
+            borderWidth: 1,
+            borderColor: theme.colors.surfaceLight,
+        },
+        button: {
+            backgroundColor: theme.colors.primary,
+            padding: 16,
+            borderRadius: 8,
+            alignItems: 'center',
+            marginTop: 8,
+        },
+        buttonText: {
+            color: '#FFF',
+            fontSize: 18,
+            fontWeight: 'bold',
+        },
+        linkText: {
+            color: theme.colors.textSecondary,
+            textAlign: 'center',
+            marginTop: 16,
+            fontSize: 16,
+        },
+        linkHighlight: {
+            color: theme.colors.primary,
+            fontWeight: 'bold',
+        },
+        errorContainer: {
+            marginTop: 16,
+            padding: 16,
+            backgroundColor: 'rgba(207, 102, 121, 0.1)',
+            borderRadius: 8,
+            borderLeftWidth: 3,
+            borderLeftColor: theme.colors.error,
+        },
+        errorText: {
+            color: theme.colors.error,
+            fontSize: 14,
+        },
+    });
 
-                <View style={styles.form}>
-                    <Text style={styles.label}>Nome</Text>
+    return (
+        <View style={[dynamicStyles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+            <View style={dynamicStyles.content}>
+                <View style={dynamicStyles.logoContainer}>
+                    <Image source={require('../../assets/logo.png')} style={dynamicStyles.logo} />
+                </View>
+                <Text style={dynamicStyles.title}>Crie sua conta</Text>
+                <Text style={dynamicStyles.subtitle}>Comece sua jornada de pedaladas hoje.</Text>
+
+                <View style={dynamicStyles.form}>
+                    <Text style={dynamicStyles.label}>Nome</Text>
                     <TextInput
-                        style={styles.input}
+                        style={dynamicStyles.input}
                         placeholder="Seu Nome"
                         placeholderTextColor={theme.colors.textSecondary}
                         value={name}
                         onChangeText={setName}
                     />
 
-                    <Text style={styles.label}>Email</Text>
+                    <Text style={dynamicStyles.label}>Email</Text>
                     <TextInput
-                        style={styles.input}
+                        style={dynamicStyles.input}
                         placeholder="seu@email.com"
                         placeholderTextColor={theme.colors.textSecondary}
                         value={email}
@@ -81,9 +165,9 @@ const RegisterScreen = ({ navigation }) => {
                         keyboardType="email-address"
                     />
 
-                    <Text style={styles.label}>Senha</Text>
+                    <Text style={dynamicStyles.label}>Senha</Text>
                     <TextInput
-                        style={styles.input}
+                        style={dynamicStyles.input}
                         placeholder="********"
                         placeholderTextColor={theme.colors.textSecondary}
                         value={password}
@@ -92,22 +176,22 @@ const RegisterScreen = ({ navigation }) => {
                     />
 
                     {errorMessage ? (
-                        <View style={styles.errorContainer}>
-                            <Text style={styles.errorText}>{errorMessage}</Text>
+                        <View style={dynamicStyles.errorContainer}>
+                            <Text style={dynamicStyles.errorText}>{errorMessage}</Text>
                         </View>
                     ) : null}
 
-                    <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
+                    <TouchableOpacity style={dynamicStyles.button} onPress={handleRegister} disabled={loading}>
                         {loading ? (
-                            <ActivityIndicator color={theme.colors.text} />
+                            <ActivityIndicator color="#FFF" />
                         ) : (
-                            <Text style={styles.buttonText}>Cadastrar</Text>
+                            <Text style={dynamicStyles.buttonText}>Cadastrar</Text>
                         )}
                     </TouchableOpacity>
 
                     <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Text style={styles.linkText}>
-                            Já tem conta? <Text style={styles.linkHighlight}>Faça Login</Text>
+                        <Text style={dynamicStyles.linkText}>
+                            Já tem conta? <Text style={dynamicStyles.linkHighlight}>Faça Login</Text>
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -115,85 +199,5 @@ const RegisterScreen = ({ navigation }) => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    content: {
-        flex: 1,
-        padding: theme.spacing.m,
-        justifyContent: 'center',
-    },
-    logoContainer: {
-        alignItems: 'center',
-        marginBottom: theme.spacing.xl,
-    },
-    logo: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-    },
-    title: {
-        ...theme.typography.h1,
-        marginBottom: theme.spacing.s,
-    },
-    subtitle: {
-        ...theme.typography.subtitle,
-        marginBottom: theme.spacing.xl,
-    },
-    form: {
-        gap: theme.spacing.m,
-    },
-    label: {
-        color: theme.colors.textSecondary,
-        marginBottom: theme.spacing.xs,
-        fontSize: 16,
-    },
-    input: {
-        backgroundColor: theme.colors.surface,
-        color: theme.colors.text,
-        padding: theme.spacing.m,
-        borderRadius: theme.borderRadius.m,
-        fontSize: 16,
-        borderWidth: 1,
-        borderColor: theme.colors.surfaceLight,
-    },
-    button: {
-        backgroundColor: theme.colors.primary,
-        padding: theme.spacing.m,
-        borderRadius: theme.borderRadius.m,
-        alignItems: 'center',
-        marginTop: theme.spacing.s,
-    },
-    buttonText: {
-        color: theme.colors.text,
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    linkText: {
-        color: theme.colors.textSecondary,
-        textAlign: 'center',
-        marginTop: theme.spacing.m,
-        fontSize: 16,
-    },
-    linkHighlight: {
-        color: theme.colors.primary,
-        fontWeight: 'bold',
-    },
-    errorContainer: {
-        marginTop: theme.spacing.m,
-        padding: theme.spacing.m,
-        backgroundColor: 'rgba(207, 102, 121, 0.1)',
-        borderRadius: theme.borderRadius.m,
-        borderLeftWidth: 3,
-        borderLeftColor: theme.colors.error,
-    },
-    errorText: {
-        color: theme.colors.error,
-        fontSize: 14,
-    },
-});
 
 export default RegisterScreen;

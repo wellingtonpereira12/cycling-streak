@@ -2,11 +2,12 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RideContext } from '../context/RideContext';
+import { useTheme } from '../context/ThemeContext';
 import AchievementCard from '../components/AchievementCard';
-import { theme } from '../styles/theme';
 
 const AchievementsScreen = () => {
     const { streakData } = useContext(RideContext);
+    const { theme } = useTheme();
     const { streak } = streakData;
 
     const achievements = [
@@ -19,13 +20,39 @@ const AchievementsScreen = () => {
 
     const insets = useSafeAreaInsets();
 
+    const dynamicStyles = StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.colors.background,
+        },
+        header: {
+            padding: 24,
+            backgroundColor: theme.colors.surface,
+            marginBottom: 16,
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: theme.colors.text,
+        },
+        subtitle: {
+            fontSize: 14,
+            color: theme.colors.textSecondary,
+            marginTop: 4,
+        },
+        list: {
+            paddingHorizontal: 16,
+            paddingBottom: 32,
+        }
+    });
+
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Conquistas</Text>
-                <Text style={styles.subtitle}>Sua jornada até aqui</Text>
+        <View style={[dynamicStyles.container, { paddingTop: insets.top }]}>
+            <View style={dynamicStyles.header}>
+                <Text style={dynamicStyles.title}>Conquistas</Text>
+                <Text style={dynamicStyles.subtitle}>Sua jornada até aqui</Text>
             </View>
-            <ScrollView contentContainerStyle={styles.list}>
+            <ScrollView contentContainerStyle={dynamicStyles.list}>
                 {achievements.map((item, index) => (
                     <AchievementCard
                         key={index}
@@ -38,28 +65,5 @@ const AchievementsScreen = () => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: theme.colors.background,
-    },
-    header: {
-        padding: theme.spacing.l,
-        backgroundColor: theme.colors.surface,
-        marginBottom: theme.spacing.m,
-    },
-    title: {
-        ...theme.typography.h2,
-    },
-    subtitle: {
-        ...theme.typography.caption,
-        marginTop: 4,
-    },
-    list: {
-        paddingHorizontal: theme.spacing.m,
-        paddingBottom: theme.spacing.xl,
-    }
-});
 
 export default AchievementsScreen;
