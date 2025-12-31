@@ -13,6 +13,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import RideOptionsScreen from '../screens/RideOptionsScreen';
 import ManualRideScreen from '../screens/ManualRideScreen';
+import RideSummaryScreen from '../screens/RideSummaryScreen';
 
 import { theme } from '../styles/theme';
 import { useAuth } from '../context/AuthContext';
@@ -78,6 +79,7 @@ const MainStack = () => {
             <Stack.Screen name="MainTabs" component={MainTabNavigator} />
             <Stack.Screen name="RideOptions" component={RideOptionsScreen} />
             <Stack.Screen name="ManualRide" component={ManualRideScreen} />
+            <Stack.Screen name="RideSummary" component={RideSummaryScreen} />
         </Stack.Navigator>
     );
 };

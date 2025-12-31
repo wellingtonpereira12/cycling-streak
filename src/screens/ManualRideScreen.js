@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../styles/theme';
 import { ArrowLeft, Check } from 'lucide-react-native';
@@ -64,11 +65,22 @@ const ManualRideScreen = ({ navigation }) => {
         setErrorMessage('');
         setLoading(true);
         try {
-            // We only save the difference
-            await addRide(deltaDistance, deltaDuration);
-            Alert.alert("Sucesso", `Adicionado +${deltaDistance.toFixed(1)}km e +${deltaDuration}min ao seu dia!`, [
-                { text: "OK", onPress: () => navigation.popToTop() }
-            ]);
+            // Captured NEW totals for the day
+            const summaryData = {
+                distance: inputDistance,
+                duration: inputDuration * 60 // seconds for summary
+            };
+
+            // Start API call with the FULL daily total (not delta)
+            addRide(inputDistance, inputDuration).catch(e => {
+                console.error("Manual ride sync error:", e);
+                Alert.alert("Erro", "Não foi possível sincronizar o pedal manual.");
+            });
+
+            setLoading(false);
+
+            // Navigate immediately to summary screen with NEW DAILY TOTALS
+            navigation.navigate('RideSummary', { rideData: summaryData });
         } catch (error) {
             setErrorMessage(error.response?.data?.msg || 'Erro ao registrar pedal');
             setLoading(false);

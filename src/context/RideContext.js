@@ -149,22 +149,30 @@ export const RideProvider = ({ children }) => {
 
     const stopLiveRide = async (save = true) => {
         try {
-            setIsRecording(false);
-            setIsPaused(false);
             const result = await LocationTracker.stopTracking();
 
             if (save) {
-                // Save to backend
-                await addRide(result.distance, result.duration);
+                // Calculate total to save (Daily accumulated total)
+                // sessionResult.duration is in seconds, todayStats.duration is in minutes
+                const totalDist = (todayStats.distance || 0) + result.distance;
+                const totalDur = (todayStats.duration || 0) + Math.round(result.duration / 60);
+
+                // Save combined total to backend
+                await addRide(totalDist, totalDur);
             }
 
-            setLiveStats({ distance: 0, duration: 0, path: [] });
-            setIsModalVisible(false);
             return result;
         } catch (error) {
             console.error("Error stopping ride:", error);
             throw error;
         }
+    };
+
+    const cleanupLiveRide = () => {
+        setIsRecording(false);
+        setIsPaused(false);
+        setIsModalVisible(false);
+        setLiveStats({ distance: 0, duration: 0, path: [] });
     };
 
     const pauseRide = () => {
@@ -227,6 +235,7 @@ export const RideProvider = ({ children }) => {
             liveStats,
             startLiveRide,
             stopLiveRide,
+            cleanupLiveRide,
             isPaused,
             pauseRide,
             resumeRide,

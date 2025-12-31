@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Alert, Dimensions, Platform, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { RideContext } from '../context/RideContext';
@@ -9,8 +10,21 @@ import { StopCircle, MapPin, Watch, ChevronDown, Play, Pause } from 'lucide-reac
 const { width, height } = Dimensions.get('window');
 
 const ActiveRideModal = () => {
-    const { isRecording, isModalVisible, setIsModalVisible, liveStats, stopLiveRide, isPaused, pauseRide, resumeRide, todayStats } = useContext(RideContext);
+    const navigation = useNavigation();
+    const {
+        isRecording,
+        isModalVisible,
+        setIsModalVisible,
+        liveStats,
+        stopLiveRide,
+        cleanupLiveRide,
+        isPaused,
+        pauseRide,
+        resumeRide,
+        todayStats
+    } = useContext(RideContext);
     const [durationString, setDurationString] = useState('00:00:00');
+    const [isSaving, setIsSaving] = useState(false);
     const webViewRef = useRef(null);
 
     // Initial HTML content with Leaflet
@@ -168,6 +182,7 @@ const ActiveRideModal = () => {
                         style: "destructive",
                         onPress: async () => {
                             await stopLiveRide(false); // False = do not save
+                            cleanupLiveRide();
                         }
                     }
                 ]
@@ -183,15 +198,32 @@ const ActiveRideModal = () => {
                         style: "destructive",
                         onPress: async () => {
                             await stopLiveRide(false); // Don't save
+                            cleanupLiveRide();
                         }
                     },
                     {
                         text: "Salvar",
                         onPress: async () => {
                             try {
-                                const result = await stopLiveRide(true); // Save
-                                Alert.alert("Sucesso", `Pedal de ${result.distance}km salvo!`);
+                                setIsSaving(true);
+
+                                // Capture FINAL daily totals for the summary
+                                const finalDailyStats = {
+                                    distance: (todayStats?.distance || 0) + liveStats.distance,
+                                    duration: (todayStats?.duration || 0) * 60 + liveStats.duration
+                                };
+
+                                // Stop tracking and save to API
+                                await stopLiveRide(true);
+
+                                // Navigate immediately to summary screen with DAILY TOTALS
+                                navigation.navigate('RideSummary', { rideData: finalDailyStats });
+
+                                // Clean up the modal AFTER navigation has been triggered
+                                cleanupLiveRide();
+                                setIsSaving(false);
                             } catch (e) {
+                                setIsSaving(false);
                                 Alert.alert("Erro", "Falha ao salvar o pedal.");
                             }
                         }
@@ -213,70 +245,97 @@ const ActiveRideModal = () => {
                     style={styles.map}
                     scrollEnabled={false}
                     onLoadEnd={() => {
-                        // Sync immediately when loaded
                         updateMap(liveStats.path);
                         handleWebViewLoad();
                     }}
                 />
 
-                {/* Overlay UI */}
                 <View style={styles.overlay}>
+                    {/* Header: Minimalist Top Bar */}
                     <View style={styles.header}>
                         <TouchableOpacity
                             style={styles.minimizeButton}
                             onPress={() => setIsModalVisible(false)}
+                            activeOpacity={0.7}
                         >
-                            <ChevronDown size={28} color="#FFF" />
-                        </TouchableOpacity>
-
-                        <View style={styles.indicatorContainer}>
-                            <View style={styles.blinkingDot} />
-                            <Text style={styles.headerTitle}>GRAVANDO ATIVIDADE</Text>
-                        </View>
-
-                        {/* Placeholder for balance */}
-                        <View style={{ width: 40 }} />
-                    </View>
-
-                    <View style={styles.statsCard}>
-                        <View style={styles.statsRow}>
-                            <View style={styles.statItem}>
-                                <Text style={styles.statValue}>
-                                    {((todayStats?.distance || 0) + liveStats.distance).toFixed(1)}
-                                </Text>
-                                <Text style={styles.statLabel}>Distância (km)</Text>
-                            </View>
-                            <View style={styles.dividerVertical} />
-                            <View style={styles.statItem}>
-                                <Text style={styles.statValue}>{durationString}</Text>
-                                <Text style={styles.statLabel}>TEMPO</Text>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* Play/Pause Button - Large and centered */}
-                    <View style={styles.controlsContainer}>
-                        <TouchableOpacity
-                            style={styles.playPauseButton}
-                            onPress={isPaused ? resumeRide : pauseRide}
-                            activeOpacity={0.8}
-                        >
-                            {isPaused ? (
-                                <Play size={48} color="#FFF" fill="#FFF" />
-                            ) : (
-                                <Pause size={48} color="#FFF" fill="#FFF" />
-                            )}
+                            <ChevronDown size={28} color="#1A1A1A" />
                         </TouchableOpacity>
                     </View>
 
-                    <TouchableOpacity
-                        style={styles.stopButton}
-                        onPress={handleStop}
-                        activeOpacity={0.8}
-                    >
-                        <StopCircle size={32} color="#FFF" />
-                        <Text style={styles.stopButtonText}>FINALIZAR</Text>
-                    </TouchableOpacity>
+                    {/* Main Content: Floating Stats & Bottom Controls */}
+                    <View style={styles.bottomSection}>
+
+                        {/* 1. Floating Stats Card */}
+                        <View style={styles.statsFloatingCard}>
+                            <View style={styles.cardHeader}>
+                                <Text style={styles.cardTitle}>Pedalada</Text>
+                            </View>
+
+                            <View style={styles.statsRow}>
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statValueMain}>{durationString}</Text>
+                                    <Text style={styles.statLabel}>Tempo</Text>
+                                </View>
+
+                                <View style={styles.verticalLine} />
+
+                                <View style={styles.statItem}>
+                                    <Text style={styles.statValueMain}>
+                                        {((todayStats?.distance || 0) + liveStats.distance).toFixed(1)}
+                                    </Text>
+                                    <Text style={styles.statLabel}>km</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* 2. Bottom Controls Sheet */}
+                        <View style={styles.controlSheet}>
+                            {/* Grip Handle */}
+                            <View style={styles.sheetHandle} />
+
+                            <View style={styles.controlsRow}>
+                                {/* Left: Stop/Finish Button */}
+                                <TouchableOpacity
+                                    style={styles.circleActionButton}
+                                    onPress={handleStop}
+                                    activeOpacity={0.8}
+                                >
+                                    <View style={styles.iconCircleRed}>
+                                        <StopCircle size={24} color="#FF6B35" />
+                                    </View>
+                                    <Text style={styles.actionLabel}>Finalizar</Text>
+                                </TouchableOpacity>
+
+                                {/* Center: Large Play/Pause */}
+                                <View style={styles.playButtonContainer}>
+                                    <TouchableOpacity
+                                        style={styles.largePlayButton}
+                                        onPress={isPaused ? resumeRide : pauseRide}
+                                        activeOpacity={0.9}
+                                    >
+                                        {isPaused ? (
+                                            <Play size={42} color="#FFF" fill="#FFF" style={{ marginLeft: 6 }} />
+                                        ) : (
+                                            <Pause size={42} color="#FFF" fill="#FFF" />
+                                        )}
+                                    </TouchableOpacity>
+                                </View>
+
+                                {/* Right: Balance spacer */}
+                                <View style={{ width: 60 }} />
+                            </View>
+                        </View>
+                        {/* Loading Overlay */}
+                        {isSaving && (
+                            <View style={styles.loadingOverlay}>
+                                <View style={styles.loadingCard}>
+                                    <ActivityIndicator size="large" color="#FF6B35" />
+                                    <Text style={styles.loadingText}>Processando sua pedalada...</Text>
+                                    <Text style={styles.loadingSubtext}>Quase lá!</Text>
+                                </View>
+                            </View>
+                        )}
+                    </View>
                 </View>
             </View>
         </Modal>
@@ -286,11 +345,10 @@ const ActiveRideModal = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000',
+        backgroundColor: '#EAEAEA',
     },
     map: {
         flex: 1,
-        backgroundColor: '#000',
     },
     overlay: {
         position: 'absolute',
@@ -299,122 +357,186 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
         justifyContent: 'space-between',
-        padding: 20,
-        paddingTop: 60,
-        paddingBottom: 40,
-        pointerEvents: 'box-none', // Allow clicks to pass through to map where no UI exists? 
-        // Note: react-native View pointerEvents might need to be 'box-none' to let map interactions work if overlay covers it.
-        // However, map is below overlay in Z-index. The touches on empty space of overlay need to passthrough.
+        pointerEvents: 'box-none',
     },
     header: {
-        alignItems: 'center',
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
+        paddingTop: Platform.OS === 'ios' ? 50 : 40,
+        paddingHorizontal: 20,
     },
     minimizeButton: {
-        padding: 8,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        borderRadius: 20,
-    },
-    indicatorContainer: {
-        flexDirection: 'row',
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#FFF',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
+        justifyContent: 'center',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.15,
         shadowRadius: 4,
-        elevation: 5,
+        elevation: 4,
     },
-    blinkingDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: '#FF4D4D',
-        marginRight: 10,
+    bottomSection: {
+        justifyContent: 'flex-end',
+        pointerEvents: 'box-none',
     },
-    headerTitle: {
-        color: '#FF4D4D',
-        fontWeight: 'bold',
-        letterSpacing: 1.2,
-        fontSize: 12,
+    statsFloatingCard: {
+        backgroundColor: '#FFF',
+        marginHorizontal: 16,
+        marginBottom: 16,
+        borderRadius: 16,
+        padding: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 8,
     },
-    statsCard: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)', // Semi-transparent black 
-        // OR theme.colors.surface with opacity
-        borderRadius: 20,
-        padding: 24,
-        marginHorizontal: 10,
-        marginBottom: 20,
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#333',
+    },
+    liveBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    recordingDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#FF6B35',
+        marginRight: 4,
     },
     statsRow: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
     },
     statItem: {
         alignItems: 'center',
+        flex: 1,
     },
-    statValue: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#FFF',
+    statValueMain: {
+        fontSize: 28, // Reduced slightly to fit 3 items
+        fontWeight: '800',
+        color: '#1A1A1A',
         fontVariant: ['tabular-nums'],
     },
     statLabel: {
         fontSize: 12,
-        color: '#BBB',
+        color: '#888',
         marginTop: 4,
-        fontWeight: 'bold',
+        fontWeight: '600',
     },
-    dividerVertical: {
+    verticalLine: {
         width: 1,
-        height: 40,
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        height: 30,
+        backgroundColor: '#EEE',
     },
-    controlsContainer: {
+    controlSheet: {
+        backgroundColor: '#FFF',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingTop: 12,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        paddingHorizontal: 32,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 10,
+    },
+    sheetHandle: {
+        width: 40,
+        height: 4,
+        backgroundColor: '#E0E0E0',
+        borderRadius: 2,
+        alignSelf: 'center',
+        marginBottom: 24,
+    },
+    controlsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    circleActionButton: {
+        alignItems: 'center',
+        gap: 6,
+    },
+    iconCircleRed: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#FFF1EC', // Light orange tint
         alignItems: 'center',
         justifyContent: 'center',
-        marginVertical: 20,
     },
-    playPauseButton: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
-        backgroundColor: '#FF6B35', // Orange color similar to reference
+    iconCircleGray: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#F5F5F5',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    actionLabel: {
+        fontSize: 12,
+        color: '#333',
+        fontWeight: '600',
+    },
+    playButtonContainer: {
+        marginTop: -10, // Slight offset to visually balance
+    },
+    largePlayButton: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: '#FF6B35',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#FF6B35',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.5,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
         shadowRadius: 12,
         elevation: 8,
     },
-    stopButton: {
-        backgroundColor: '#FF4D4D',
-        flexDirection: 'row',
-        alignItems: 'center',
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'center',
-        paddingVertical: 18,
-        borderRadius: 50,
-        gap: 12,
-        shadowColor: '#FF4D4D',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 10,
-        elevation: 5,
-        marginHorizontal: 20,
+        alignItems: 'center',
+        zIndex: 999,
     },
-    stopButtonText: {
-        color: '#FFF',
+    loadingCard: {
+        backgroundColor: '#FFF',
+        padding: 30,
+        borderRadius: 20,
+        alignItems: 'center',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    loadingText: {
+        marginTop: 20,
         fontSize: 18,
-        fontWeight: 'bold',
-        letterSpacing: 1,
-    }
+        fontWeight: '700',
+        color: '#1A1A1A',
+    },
+    loadingSubtext: {
+        marginTop: 8,
+        fontSize: 14,
+        color: '#888',
+    },
 });
 
 export default ActiveRideModal;
