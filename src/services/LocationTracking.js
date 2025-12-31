@@ -5,7 +5,12 @@ const LOCATION_TASK_NAME = 'background-location-task';
 
 // Store subscribers to update UI
 let updateCallback = null;
+let onPauseChangeCallback = null; // Callback for pause state changes
 let timerInterval = null;
+let isPaused = false;
+let pausedTime = 0; // Total time spent paused
+let pauseStartTime = null; // When current pause started
+let lastMovementTime = null; // Timestamp of last movement
 let currentRideData = {
     distance: 0,
     startTime: null,
@@ -40,7 +45,19 @@ const handleNewLocations = (newLocations) => {
                 loc.coords.latitude,
                 loc.coords.longitude
             );
-            currentRideData.distance += dist;
+
+            // Auto-resume if paused and user moved significantly (> 10 meters)
+            if (isPaused && dist > 0.01) {
+                resumeTracking();
+            }
+
+            // Only add distance if not paused
+            if (!isPaused) {
+                if (dist > 0) {
+                    currentRideData.distance += dist;
+                    lastMovementTime = Date.now();
+                }
+            }
         }
 
         currentRideData.locations.push({
@@ -50,19 +67,21 @@ const handleNewLocations = (newLocations) => {
         });
     }
 
-    // We do NOT call updateCallback here anymore for everything, 
-    // relying on the timer interval for UI updates helps consistency?
-    // Actually, we should update distance immediately on new location
-    // AND update time every second. 
-    // Let's call emitUpdate here too to catch distance changes instantly.
     emitUpdate();
 };
 
 const emitUpdate = () => {
     if (updateCallback && currentRideData.startTime) {
+        let totalPausedTime = pausedTime;
+
+        // If currently paused, add current pause duration
+        if (isPaused && pauseStartTime) {
+            totalPausedTime += (Date.now() - pauseStartTime);
+        }
+
         updateCallback({
             distance: currentRideData.distance, // in km
-            duration: (Date.now() - currentRideData.startTime) / 1000, // seconds
+            duration: ((Date.now() - currentRideData.startTime) - totalPausedTime) / 1000, // seconds, excluding paused time
             path: [...currentRideData.locations]
         });
     }
@@ -88,6 +107,10 @@ const deg2rad = (deg) => {
 };
 
 
+export const setOnPauseChange = (callback) => {
+    onPauseChangeCallback = callback;
+};
+
 export const startTracking = async (callback) => {
     // 1. Reset Data
     currentRideData = {
@@ -95,11 +118,21 @@ export const startTracking = async (callback) => {
         startTime: Date.now(),
         locations: []
     };
+    lastMovementTime = Date.now();
     updateCallback = callback;
 
     // Start Timer Interval (every 1s)
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
+        // Auto-pause check
+        if (!isPaused && currentRideData.startTime && lastMovementTime) {
+            const timeSinceLastMove = Date.now() - lastMovementTime;
+            if (timeSinceLastMove > 10000) { // 10 seconds
+                console.log("Auto-pausing due to inactivity");
+                pauseTracking();
+            }
+        }
+
         emitUpdate();
     }, 1000);
 
@@ -151,6 +184,7 @@ export const stopTracking = async () => {
     // Cleanup
     currentRideData = { distance: 0, startTime: null, locations: [] };
     updateCallback = null;
+    onPauseChangeCallback = null;
 
     return result;
 };
@@ -165,4 +199,21 @@ export const getCurrentStats = () => {
         distance: currentRideData.distance,
         duration: (Date.now() - currentRideData.startTime) / 1000
     };
+};
+
+export const pauseTracking = () => {
+    if (!isPaused) {
+        isPaused = true;
+        pauseStartTime = Date.now();
+        if (onPauseChangeCallback) onPauseChangeCallback(true);
+    }
+};
+
+export const resumeTracking = () => {
+    if (isPaused && pauseStartTime) {
+        pausedTime += (Date.now() - pauseStartTime);
+        pauseStartTime = null;
+        isPaused = false;
+        if (onPauseChangeCallback) onPauseChangeCallback(false);
+    }
 };

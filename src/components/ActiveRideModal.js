@@ -4,12 +4,12 @@ import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { RideContext } from '../context/RideContext';
 import { theme } from '../styles/theme';
-import { StopCircle, MapPin, Watch, ChevronDown } from 'lucide-react-native';
+import { StopCircle, MapPin, Watch, ChevronDown, Play, Pause } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
 
 const ActiveRideModal = () => {
-    const { isRecording, isModalVisible, setIsModalVisible, liveStats, stopLiveRide } = useContext(RideContext);
+    const { isRecording, isModalVisible, setIsModalVisible, liveStats, stopLiveRide, isPaused, pauseRide, resumeRide } = useContext(RideContext);
     const [durationString, setDurationString] = useState('00:00:00');
     const webViewRef = useRef(null);
 
@@ -246,6 +246,21 @@ const ActiveRideModal = () => {
                         </View>
                     </View>
 
+                    {/* Play/Pause Button - Large and centered */}
+                    <View style={styles.controlsContainer}>
+                        <TouchableOpacity
+                            style={styles.playPauseButton}
+                            onPress={isPaused ? resumeRide : pauseRide}
+                            activeOpacity={0.8}
+                        >
+                            {isPaused ? (
+                                <Play size={48} color="#FFF" fill="#FFF" />
+                            ) : (
+                                <Pause size={48} color="#FFF" fill="#FFF" />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+
                     <TouchableOpacity
                         style={styles.stopButton}
                         onPress={handleStop}
@@ -352,6 +367,24 @@ const styles = StyleSheet.create({
         width: 1,
         height: 40,
         backgroundColor: 'rgba(255,255,255,0.2)',
+    },
+    controlsContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 20,
+    },
+    playPauseButton: {
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        backgroundColor: '#FF6B35', // Orange color similar to reference
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#FF6B35',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.5,
+        shadowRadius: 12,
+        elevation: 8,
     },
     stopButton: {
         backgroundColor: '#FF4D4D',

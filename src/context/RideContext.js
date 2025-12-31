@@ -24,6 +24,7 @@ export const RideProvider = ({ children }) => {
     const [isRecording, setIsRecording] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [liveStats, setLiveStats] = useState({ distance: 0, duration: 0, path: [] });
+    const [isPaused, setIsPaused] = useState(false);
 
     const fetchDashboard = useCallback(async () => {
         if (!userToken) return;
@@ -107,6 +108,9 @@ export const RideProvider = ({ children }) => {
             await LocationTracker.startTracking((stats) => {
                 setLiveStats(stats);
             });
+            LocationTracker.setOnPauseChange((paused) => {
+                setIsPaused(paused);
+            });
             setIsRecording(true);
             setIsModalVisible(true);
             return true;
@@ -119,6 +123,7 @@ export const RideProvider = ({ children }) => {
     const stopLiveRide = async (save = true) => {
         try {
             setIsRecording(false);
+            setIsPaused(false);
             const result = await LocationTracker.stopTracking();
 
             if (save) {
@@ -133,6 +138,16 @@ export const RideProvider = ({ children }) => {
             console.error("Error stopping ride:", error);
             throw error;
         }
+    };
+
+    const pauseRide = () => {
+        setIsPaused(true);
+        LocationTracker.pauseTracking();
+    };
+
+    const resumeRide = () => {
+        setIsPaused(false);
+        LocationTracker.resumeTracking();
     };
 
     const addRide = async (distancia, duracao) => {
@@ -184,7 +199,10 @@ export const RideProvider = ({ children }) => {
             setIsModalVisible,
             liveStats,
             startLiveRide,
-            stopLiveRide
+            stopLiveRide,
+            isPaused,
+            pauseRide,
+            resumeRide
         }}>
             {children}
         </RideContext.Provider>
