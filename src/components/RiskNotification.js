@@ -13,8 +13,8 @@ const RiskNotification = ({ riskLevel }) => {
         : (isDark ? 'rgba(255, 152, 0, 0.15)' : 'rgba(255, 152, 0, 0.1)');
     const textColor = isDanger ? theme.colors.error : '#FF9800';
     const message = isDanger
-        ? "Cuidado! Você perderá sua ofensiva se não pedalar hoje!"
-        : "Não esqueça de pedalar! Aumente sua ofensiva.";
+        ? "Cuidado! Você perderá sua ofensiva se não treinar hoje!"
+        : "Não esqueça de treinar! Aumente sua ofensiva.";
 
     const dynamicStyles = StyleSheet.create({
         container: {

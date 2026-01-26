@@ -76,7 +76,7 @@ const RideModal = ({ visible, onClose, onSubmit }) => {
             setErrorMessage('');
             onClose();
         } catch (error) {
-            setErrorMessage(error.response?.data?.msg || 'Erro ao registrar pedal');
+            setErrorMessage(error.response?.data?.msg || 'Erro ao registrar a ofensiva');
         } finally {
             setLoading(false);
         }
@@ -181,7 +181,7 @@ const RideModal = ({ visible, onClose, onSubmit }) => {
             <View style={dynamicStyles.overlay}>
                 <View style={dynamicStyles.modal}>
                     <View style={dynamicStyles.header}>
-                        <Text style={dynamicStyles.title}>Registrar Pedal</Text>
+                        <Text style={dynamicStyles.title}>Registrar Ofensiva</Text>
                         <TouchableOpacity onPress={handleClose}>
                             <X size={24} color={theme.colors.text} />
                         </TouchableOpacity>

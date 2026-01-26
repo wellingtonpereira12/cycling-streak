@@ -43,7 +43,7 @@ const RideButton = ({ onPress, disabled }) => {
             disabled={disabled}
         >
             <Bike size={24} color="#FFF" style={{ marginRight: 8 }} />
-            <Text style={dynamicStyles.text}>REGISTRAR PEDAL</Text>
+            <Text style={dynamicStyles.text}>REGISTRAR OFENSIVA</Text>
         </TouchableOpacity>
     );
 };

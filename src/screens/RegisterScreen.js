@@ -142,7 +142,7 @@ const RegisterScreen = ({ navigation }) => {
                     <Image source={require('../../assets/logo.png')} style={dynamicStyles.logo} />
                 </View>
                 <Text style={dynamicStyles.title}>Crie sua conta</Text>
-                <Text style={dynamicStyles.subtitle}>Comece sua jornada de pedaladas hoje.</Text>
+                <Text style={dynamicStyles.subtitle}>Comece sua jornada de ofensiva hoje.</Text>
 
                 <View style={dynamicStyles.form}>
                     <Text style={dynamicStyles.label}>Nome</Text>

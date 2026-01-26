@@ -52,7 +52,7 @@ const ManualRideScreen = ({ navigation }) => {
         const deltaDuration = inputDuration - initialStats.duration;
 
         if (deltaDistance <= 0.01 && deltaDuration <= 0) {
-            setErrorMessage('O novo total deve ser maior que o atual para adicionar um pedal.');
+            setErrorMessage('O novo total deve ser maior que o atual para adicionar uma ofensiva.');
             return;
         }
 
@@ -75,7 +75,7 @@ const ManualRideScreen = ({ navigation }) => {
             // RideContext.addRide now expects SECONDS
             addRide(inputDistance, inputDuration * 60).catch(e => {
                 console.error("Manual ride sync error:", e);
-                Alert.alert("Erro", "Não foi possível sincronizar o pedal manual.");
+                Alert.alert("Erro", "Não foi possível sincronizar a ofensiva manual.");
             });
 
             setLoading(false);
@@ -83,7 +83,7 @@ const ManualRideScreen = ({ navigation }) => {
             // Navigate immediately to summary screen with NEW DAILY TOTALS
             navigation.navigate('RideSummary', { rideData: summaryData });
         } catch (error) {
-            setErrorMessage(error.response?.data?.msg || 'Erro ao registrar pedal');
+            setErrorMessage(error.response?.data?.msg || 'Erro ao registrar a ofensiva.');
             setLoading(false);
         }
     };

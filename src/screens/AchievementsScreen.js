@@ -11,11 +11,11 @@ const AchievementsScreen = () => {
     const { streak } = streakData;
 
     const achievements = [
-        { threshold: 1, title: 'Primeiro Pedal', description: 'Registrou sua primeira atividade!' },
+        { threshold: 1, title: 'Primeiro Dia', description: 'Registrou sua primeira atividade!' },
         { threshold: 3, title: 'Aquecimento', description: 'Manteve a ofensiva por 3 dias.' },
         { threshold: 7, title: 'Semana Completa', description: 'Uma semana inteira de foco!' },
         { threshold: 30, title: 'Hábito Formado', description: '30 dias de consistência.' },
-        { threshold: 100, title: 'Lenda do Pedal', description: '100 dias. Você é imparável.' },
+        { threshold: 100, title: 'Lenda da Ofensiva', description: '100 dias. Você é imparável.' },
     ];
 
     const insets = useSafeAreaInsets();

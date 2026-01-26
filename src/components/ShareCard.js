@@ -159,7 +159,7 @@ const ShareCard = ({ streak, totalDistance, totalDuration, userName }) => {
                     <View style={dynamicStyles.statItem}>
                         <MapPin size={40} color="rgba(255, 255, 255, 0.6)" />
                         <Text style={dynamicStyles.statValue}>{totalDistance?.toFixed(1) || 0} KM</Text>
-                        <Text style={dynamicStyles.statLabelSmall}>PEDALADOS</Text>
+                        <Text style={dynamicStyles.statLabelSmall}>OFENSIVA</Text>
                     </View>
                     <View style={dynamicStyles.statItem}>
                         <Clock size={40} color="rgba(255, 255, 255, 0.6)" />

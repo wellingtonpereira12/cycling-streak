@@ -128,7 +128,7 @@ const HistoryScreen = () => {
     return (
         <View style={[dynamicStyles.container, { paddingTop: insets.top }]}>
             <View style={dynamicStyles.header}>
-                <Text style={dynamicStyles.title}>Histórico de Pedais</Text>
+                <Text style={dynamicStyles.title}>Histórico de Ofensiva</Text>
             </View>
 
             {loading ? (
@@ -137,7 +137,7 @@ const HistoryScreen = () => {
                 </View>
             ) : history.length === 0 ? (
                 <View style={dynamicStyles.emptyContainer}>
-                    <Text style={dynamicStyles.emptyText}>Nenhum pedal registrado ainda.</Text>
+                    <Text style={dynamicStyles.emptyText}>Nenhuma ofensiva registrada ainda.</Text>
                 </View>
             ) : (
                 <FlatList

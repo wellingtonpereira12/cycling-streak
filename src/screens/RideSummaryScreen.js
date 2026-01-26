@@ -193,7 +193,7 @@ const RideSummaryScreen = ({ route, navigation }) => {
                         <Trophy size={60} color="#FF6B35" />
                     </View>
                     <Text style={dynamicStyles.title}>Parabéns!</Text>
-                    <Text style={dynamicStyles.subtitle}>Seu total de hoje foi atualizado. Continue pedalando!</Text>
+                    <Text style={dynamicStyles.subtitle}>Seu total de hoje foi atualizado. Continue sua Ofensiva!</Text>
                 </View>
 
                 {/* Stats Section */}

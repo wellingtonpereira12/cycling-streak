@@ -203,7 +203,7 @@ const ActiveRideModal = () => {
             setIsSaving(false);
         } catch (e) {
             setIsSaving(false);
-            Alert.alert("Erro", "Falha ao salvar o pedal.");
+            Alert.alert("Erro", "Falha ao salvar.");
         }
     };
 
@@ -474,7 +474,7 @@ const ActiveRideModal = () => {
                     <View style={dynamicStyles.bottomSection}>
                         <View style={dynamicStyles.statsFloatingCard}>
                             <View style={dynamicStyles.cardHeader}>
-                                <Text style={dynamicStyles.cardTitle}>Pedalada</Text>
+                                <Text style={dynamicStyles.cardTitle}>Ofensiva</Text>
                             </View>
 
                             <View style={dynamicStyles.statsRow}>
@@ -554,7 +554,7 @@ const ActiveRideModal = () => {
                             <View style={dynamicStyles.loadingOverlay}>
                                 <View style={dynamicStyles.loadingCard}>
                                     <ActivityIndicator size="large" color="#FF6B35" />
-                                    <Text style={dynamicStyles.loadingText}>Processando sua pedalada...</Text>
+                                    <Text style={dynamicStyles.loadingText}>Processando sua Ofensiva...</Text>
                                     <Text style={dynamicStyles.loadingSubtext}>Quase lá!</Text>
                                 </View>
                             </View>

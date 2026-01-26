@@ -95,7 +95,7 @@ const RideOptionsScreen = ({ navigation }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.backButton}>
                     <ArrowLeft size={24} color={theme.colors.text} />
                 </TouchableOpacity>
-                <Text style={dynamicStyles.title}>Registrar Pedal</Text>
+                <Text style={dynamicStyles.title}>Registrar Ofensiva</Text>
             </View>
 
             <View style={dynamicStyles.content}>
@@ -117,7 +117,7 @@ const RideOptionsScreen = ({ navigation }) => {
                     </View>
                     <View style={dynamicStyles.cardText}>
                         <Text style={dynamicStyles.cardTitle}>Inserir Manualmente</Text>
-                        <Text style={dynamicStyles.cardDescription}>Adicione distância e tempo se você já pedalou.</Text>
+                        <Text style={dynamicStyles.cardDescription}>Adicione distância e tempo se você já treinou.</Text>
                     </View>
                 </TouchableOpacity>
             </View>

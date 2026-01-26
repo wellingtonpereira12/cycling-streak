@@ -212,7 +212,7 @@ const HomeScreen = ({ navigation }) => {
                     )}
 
                     {daysMissed === 0 && streak > 0 && !isRecording && (
-                        <Text style={dynamicStyles.successText}>Pedal de hoje registrado!</Text>
+                        <Text style={dynamicStyles.successText}>Ofensiva de hoje registrada!</Text>
                     )}
                 </View>
 
