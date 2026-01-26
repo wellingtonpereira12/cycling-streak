@@ -10,7 +10,7 @@ app.use(express.json());
 
 // Routes
 app.get('/', (req, res) => {
-    res.send('Cycling Streak API Running');
+    res.send('Ofensiva API Running');
 });
 
 // Manual DB Setup Route

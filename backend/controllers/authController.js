@@ -69,14 +69,14 @@ exports.login = async (req, res) => {
         const userRes = await db.query('SELECT * FROM usuarios WHERE email = $1', [email]);
         if (userRes.rows.length === 0) {
             console.log(`Login failed: User not found for email ${email}`);
-            return res.status(404).json({ msg: 'User not found' });
+            return res.status(404).json({ msg: 'Email não encontrado' });
         }
 
         const user = userRes.rows[0];
         const isMatch = await bcrypt.compare(password, user.senha_hash);
         if (!isMatch) {
             console.log(`Login failed: Password mismatch for email ${email}`);
-            return res.status(401).json({ msg: 'Invalid Credentials' });
+            return res.status(401).json({ msg: 'Credenciais inválidas' });
         }
 
         const payload = { user: { id: user.id } };

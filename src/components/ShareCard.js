@@ -135,7 +135,7 @@ const ShareCard = ({ streak, totalDistance, totalDuration, userName }) => {
                     style={dynamicStyles.logo}
                 />
                 <View>
-                    <Text style={dynamicStyles.appName}>CYCLING STREAK</Text>
+                    <Text style={dynamicStyles.appName}>Ofensiva</Text>
                     <Text style={dynamicStyles.userName}>{userName || 'Ciclista'}</Text>
                 </View>
             </View>
@@ -178,7 +178,7 @@ const ShareCard = ({ streak, totalDistance, totalDuration, userName }) => {
                     <Bike size={24} color={theme.colors.primary} />
                     <Text style={dynamicStyles.footerText}>Consistência é a chave.</Text>
                 </View>
-                <Text style={dynamicStyles.watermark}>Gerado pelo Cycling Streak App</Text>
+                <Text style={dynamicStyles.watermark}>Gerado pelo Ofensiva App</Text>
             </View>
         </View>
     );
